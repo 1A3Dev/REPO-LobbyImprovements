@@ -17,7 +17,7 @@ This mod adds various features relating to lobbies:
 
 You can get support in any the following places:
 
-- The [thread](https://discord.com/channels/1168655651455639582/1282200504318820374) in the [REPO Modding Discord Server](https://discord.gg/lcmod)
+- The [thread](https://discord.com/channels/1168655651455639582/1282200504318820374) in the [REPO Modding Discord Server](https://discord.gg/repomodding)
 - [GitHub Issues](https://github.com/1A3Dev/REPO-LobbyImprovements/issues)
 - [My Discord Server](https://discord.gg/CKqVFPRtKp)
 
