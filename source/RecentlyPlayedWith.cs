@@ -48,7 +48,7 @@ namespace LobbyImprovements
         {
             if (PluginLoader.recentlyPlayedWithOrbit.Value)
             {
-                SetPlayedWith(new [] { _friend.Id.Value }, "OnLobbyEntered");
+                SetPlayedWith(new [] { _friend.Id.Value }, "OnLobbyMemberJoined");
             }
         }
         
