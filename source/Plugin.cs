@@ -1,8 +1,11 @@
-﻿using System.Reflection;
+﻿using System;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using LobbyImprovements.Patches;
+using Photon.Pun;
+using UnityEngine;
 
 namespace LobbyImprovements
 {
@@ -13,34 +16,125 @@ namespace LobbyImprovements
 
         private static bool initialized;
 
-        public static PluginLoader Instance { get; private set; }
-
         internal static ManualLogSource StaticLogger { get; private set; }
         internal static ConfigFile StaticConfig { get; private set; }
-
-        public static ConfigEntry<bool> recentlyPlayedWithOrbit;
         
-        public static ConfigEntry<int> maxPlayerCount;
+        // internal static ConfigEntry<bool> playerNamePrefixEnabled;
+        internal static ConfigEntry<string> playerNamePrefixSelected;
+        
+        internal static ConfigEntry<bool> singleplayerLobbyMenu;
+        
+        internal static ConfigEntry<bool> saveDeleteEnabled;
+        
+        internal static ConfigEntry<bool> testerOverlayEnabled;
+        internal static ConfigEntry<bool> testerOverlayModule;
 
         private void Awake()
         {
-            if (initialized)
-            {
-                return;
-            }
+            if (initialized) return;
             initialized = true;
-            Instance = this;
+            
             StaticLogger = Logger;
             StaticConfig = Config;
 
-            recentlyPlayedWithOrbit = StaticConfig.Bind("Steam", "Recent Players In Lobby", true, "Should players be added to the steam recent players list whilst you are in the lobby menu?");
-
-            maxPlayerCount = StaticConfig.Bind("Player Count", "Max Players", 10, new ConfigDescription("How many players can be in a lobby?", new AcceptableValueRange<int>(1, 100)));
-
-            Assembly patches = Assembly.GetExecutingAssembly();
-            harmony.PatchAll(patches);
-
+            try
+            {
+                harmony.PatchAll(typeof(ChatCommands));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("ChatCommands Patch Failed: " + e);
+            }
+            
+            // Player Name Prefixes
+            // playerNamePrefixEnabled = StaticConfig.Bind("Name Prefix", "Enabled", true, "Should name prefixes of other players be shown?");
+            // playerNamePrefixEnabled.SettingChanged += (sender, args) =>
+            // {
+            //     foreach (PlayerAvatar playerAvatar in GameDirector.instance.PlayerList)
+            //     {
+            //         PlayerNamePrefix.WorldSpaceUIParent_UpdatePlayerName(playerAvatar);
+            //     }
+            // };
+            
+            try
+            {
+                harmony.PatchAll(typeof(PlayerNamePrefix));
+                // if (SteamManager.instance)
+                // {
+                //     PlayerNamePrefix.SteamManager_Awake(SteamManager.instance);
+                // }
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("PlayerNamePrefix Patch Failed: " + e);
+                
+                playerNamePrefixSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
+                playerNamePrefixSelected.SettingChanged += (sender, args) =>
+                {
+                    PlayerNamePrefix.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
+                    if (GameManager.Multiplayer())
+                    {
+                        PlayerNamePrefix.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", PluginLoader.playerNamePrefixSelected?.Value);
+                    }
+                };
+            }
+            
+            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "Should saves be automatically deleted when everyone dies?");
+            
+            try
+            {
+                harmony.PatchAll(typeof(ServerListSearch));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("ServerListSearch Patch Failed: " + e);
+            }
+            
+            singleplayerLobbyMenu = StaticConfig.Bind("Singleplayer", "Lobby Menu", false, "Should the lobby menu be enabled in singleplayer?");
+            try
+            {
+                harmony.PatchAll(typeof(MenuPageLobbySP));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("MenuPageLobbySP Patch Failed: " + e);
+            }
+            
+            // Tester Overlay
+            testerOverlayEnabled = StaticConfig.Bind("Tester Overlay", "Enabled", false, "Should the tester overlay be shown?");
+            testerOverlayEnabled.SettingChanged += (sender, args) =>
+            {
+                SetupTesterOverlay(testerOverlayEnabled.Value);
+            };
+            testerOverlayModule = StaticConfig.Bind("Tester Overlay", "Show Module", true, "Should the name of the module you are in be shown?");
+            SetupTesterOverlay(testerOverlayEnabled.Value);
+            
             StaticLogger.LogInfo("Patches Loaded");
         }
+
+        private static void SetupTesterOverlay(bool _enabled)
+        {
+            GameObject overlayObj = GameObject.Find("TesterOverlay");
+            if (_enabled && overlayObj == null)
+            {
+                GameObject testerOverlayObj = new GameObject("TesterOverlay");
+                testerOverlayObj.hideFlags = HideFlags.HideAndDontSave;
+                DontDestroyOnLoad(testerOverlayObj);
+                testerOverlayObj.AddComponent<TesterOverlay>();
+            }
+            else if (!_enabled && overlayObj != null)
+            {
+                Destroy(overlayObj);
+            }
+        }
+
+#if DEBUG
+        private void OnDestroy()
+        {
+            harmony?.UnpatchSelf();
+            SetupTesterOverlay(false);
+            StaticLogger.LogInfo("Patches Unloaded");
+        }
+#endif
     }
 }

@@ -10,7 +10,7 @@
 
     <PropertyGroup>
         <IsThunderstorePackable>true</IsThunderstorePackable>
-        <ThunderstoreName>LobbyImprovements</ThunderstoreName>
+        <ThunderstoreName>LobbyImprovements_REPO</ThunderstoreName>
         <ThunderstoreDescription>Various improvements for lobbies</ThunderstoreDescription>
         <ThunderstoreIconPath>$(ProjectDir)assets/icons/icon.png</ThunderstoreIconPath>
         <HasBepInPlugin>true</HasBepInPlugin>
@@ -29,13 +29,16 @@
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.21" IncludeAssets="compile" />
     </ItemGroup>
 
-    <!-- <ItemGroup Condition="$(CI) != 'true'">
+    <ItemGroup Condition="$(CI) != 'true'">
         <Reference Include="Assembly-CSharp" Publicize="true">
             <HintPath>$(GameDir)REPO_Data/Managed/Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Facepunch.Steamworks.Win64">
             <HintPath>$(GameDir)REPO_Data/Managed/Facepunch.Steamworks.Win64.dll</HintPath>
         </Reference>
+		<Reference Include="Photon3Unity3D">
+			<HintPath>$(GameDir)REPO_Data\Managed\Photon3Unity3D.dll</HintPath>
+		</Reference>
 		<Reference Include="PhotonRealtime">
 			<HintPath>$(GameDir)REPO_Data\Managed\PhotonRealtime.dll</HintPath>
 		</Reference>
@@ -45,13 +48,18 @@
 		<Reference Include="PhotonVoice.PUN">
 			<HintPath>$(GameDir)REPO_Data\Managed\PhotonVoice.PUN.dll</HintPath>
 		</Reference>
+        <Reference Include="Unity.TextMeshPro">
+            <HintPath>$(GameDir)REPO_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(GameDir)REPO_Data\Managed\UnityEngine.UI.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>$(GameDir)REPO_Data\Managed\Newtonsoft.Json.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup Condition="$(CI) == 'true'">
-        <PackageReference Include="R.E.P.O.GameLibs.Steam" Version="*-*" />
-    </ItemGroup> -->
-
-    <ItemGroup>
         <PackageReference Include="R.E.P.O.GameLibs.Steam" Version="*-*" />
     </ItemGroup>
 
@@ -67,4 +75,13 @@
     <PropertyGroup>
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
     </PropertyGroup>
+
+    <Target Name="CopyDlls" AfterTargets="Build" Condition="'$(Configuration)|$(ShouldCopyToTestScripts)' == 'Debug|true'">
+        <ItemGroup>
+            <DllsToCopy Include="$(OutputPath)\*.dll" />
+        </ItemGroup>
+        <Copy SourceFiles="@(DllsToCopy)" DestinationFolder="$(TestScriptsDir)\BepInEx\scripts">
+            <Output TaskParameter="CopiedFiles" ItemName="CopiedOutputFiles" />
+        </Copy>
+    </Target>
 </Project>
