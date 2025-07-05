@@ -13,7 +13,6 @@ namespace LobbyImprovements.Patches
         private static void SemiFunc_Command(string _command)
         {
             if (!SemiFunc.IsMasterClientOrSingleplayer()) return;
-            if (!Debug.isDebugBuild) return; // Only allow on tester build
             
             string[] args = _command.Split(' ');
             string command = args.Length > 0 ? args[0].ToLower() : "";
