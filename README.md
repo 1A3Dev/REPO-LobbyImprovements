@@ -20,7 +20,8 @@ This mod adds various features relating to lobbies:
   - Config option to make the lobby menu be shown when loading a singleplayer save file
   - Fixed a few exceptions when going to the lobby menu in singleplayer
 - Player Name Prefixes
-  - This adds name prefixes for the game's developers and testers:
+  - This adds name prefixes for the game's developers and testers
+    - If you are one of the R.E.P.O testers and don't see the option for the tester prefix let me know on discord
     - Developer - https://i.gyazo.com/e81a1b64264d50b624e940b46bd9e5cb.png
     - Tester - https://i.gyazo.com/555a9a4e36615d045aea7dce7ca32ca9.png
 - Saves
