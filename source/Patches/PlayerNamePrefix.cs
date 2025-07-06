@@ -19,50 +19,76 @@ namespace LobbyImprovements.Patches
     {
         // Adds a prefix to the start of player names
         private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json";
-        private static Dictionary<string, List<string>> playerPrefixData;
-        private static IEnumerator GetPlayerNamePrefixes()
+        private static Dictionary<string, List<string>> playerPrefixData = new Dictionary<string, List<string>>();
+        private static IEnumerator GetPlayerNamePrefixes(string[] steamIds, string logType)
         {
-            UnityWebRequest www = UnityWebRequest.Get(playerPrefixUrl);
+            steamIds = steamIds.Where(x => Regex.IsMatch(x, "^76[0-9]{15}$")).OrderBy(x => x).ToArray();
+            string url = $"{playerPrefixUrl}";
+            if (steamIds.Length > 0)
+            {
+                url += $"?{string.Join("&", steamIds.Select(id => $"id={id}"))}";
+            }
+            UnityWebRequest www = UnityWebRequest.Get(url);
             yield return www.SendWebRequest();
+            bool includesLocalPlayer = steamIds.Contains(SteamClient.SteamId.ToString());
+            AcceptableValueList<string> acceptableValueList = null;
             if (www.result == UnityWebRequest.Result.Success)
             {
                 try
                 {
-                    playerPrefixData = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(www.downloadHandler.text);
-                    PluginLoader.StaticLogger.LogInfo($"Successfully parsed name prefixes: {playerPrefixData.Count} players");
-                    
-                    List<string> prefixes = GetPrefixDataForSteamId(SteamClient.SteamId.ToString());
-                    if (prefixes.Count > 0)
+                    Dictionary<string, List<string>> newPlayerPrefixData = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(www.downloadHandler.text);
+                    PluginLoader.StaticLogger.LogInfo($"[GetPlayerNamePrefixes | {logType}] Successfully found prefixes for {newPlayerPrefixData.Count} players");
+                    if (steamIds.Length > 0)
                     {
-                        PluginLoader.StaticLogger.LogInfo($"Found {prefixes.Count} prefixes for local player: {string.Join(", ", prefixes)}");
+                        foreach (KeyValuePair<string, List<string>> entry in newPlayerPrefixData)
+                        {
+                            playerPrefixData[entry.Key] = entry.Value;
+                            // PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {entry.Key} has {entry.Value.Count} prefixes: {string.Join(", ", entry.Value)}");
+                        }
                     }
-                    PluginLoader.playerNamePrefixSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?", new AcceptableValueList<string>(prefixes.Prepend("none").ToArray())));
+                    else
+                    {
+                        playerPrefixData = newPlayerPrefixData;
+                    }
+
+                    // Update the config with the latest prefixes
+                    if (includesLocalPlayer)
+                    {
+                        List<string> prefixes = GetPrefixDataForSteamId(SteamClient.SteamId.ToString());
+                        if (prefixes.Count > 0)
+                        {
+                            PluginLoader.StaticLogger.LogInfo($"[GetPlayerNamePrefixes | {logType}] {SteamClient.SteamId} has {prefixes.Count} prefixes: {string.Join(", ", prefixes)}");
+                        }
+                        acceptableValueList = new AcceptableValueList<string>(prefixes.Prepend("none").ToArray());
+                    }
                 }
                 catch (JsonException e)
                 {
-                    PluginLoader.StaticLogger.LogError("Failed to parse name prefixes: " + e.Message);
-                    PluginLoader.playerNamePrefixSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
+                    PluginLoader.StaticLogger.LogError($"[GetPlayerNamePrefixes | {logType}] Failed to parse prefixes: " + e.Message);
                 }
             }
             else
             {
-                PluginLoader.StaticLogger.LogError("Failed to fetch name prefixes: " + www.error);
-                PluginLoader.playerNamePrefixSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
+                PluginLoader.StaticLogger.LogError($"[GetPlayerNamePrefixes | {logType}] Failed to fetch prefixes: " + www.error);
             }
-            
-            PluginLoader.playerNamePrefixSelected.SettingChanged += (sender, args) =>
+
+            if (includesLocalPlayer)
             {
-                WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
-                if (GameManager.Multiplayer())
+                PluginLoader.playerNamePrefixSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?", acceptableValueList));
+                PluginLoader.playerNamePrefixSelected.SettingChanged += (sender, args) =>
                 {
-                    PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", PluginLoader.playerNamePrefixSelected?.Value);
-                }
-            };
+                    WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
+                    if (GameManager.Multiplayer())
+                    {
+                        PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", PluginLoader.playerNamePrefixSelected?.Value);
+                    }
+                };
+            }
         }
 
         public static List<string> GetPrefixDataForSteamId(string steamId)
         {
-            if (playerPrefixData != null && playerPrefixData.TryGetValue(steamId, out List<string> prefixes))
+            if (playerPrefixData.TryGetValue(steamId, out List<string> prefixes))
             {
                 return prefixes;
             }
@@ -140,8 +166,33 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         internal static void SteamManager_Awake(SteamManager __instance)
         {
-            __instance.StartCoroutine(GetPlayerNamePrefixes());
+            __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
+            
+            // string[] steamIds = [SteamClient.SteamId.ToString()];
+            // if (steamIds.Length > 0)
+            //     __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
         }
+        
+        // [HarmonyPatch(typeof(SteamManager), "OnLobbyEntered")]
+        // [HarmonyPostfix]
+        // [HarmonyWrapSafe]
+        // internal static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby)
+        // {
+        //     string[] steamIds = _lobby.Members.Select(x => x.Id.ToString())
+        //         .Where(x => x != SteamClient.SteamId.ToString()).ToArray();
+        //     if (steamIds.Length > 0)
+        //         __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
+        // }
+        
+        // [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberJoined")]
+        // [HarmonyPostfix]
+        // [HarmonyWrapSafe]
+        // internal static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend)
+        // {
+        //     string[] steamIds = [_friend.Id.ToString()];
+        //     if (steamIds.Length > 0)
+        //         __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));
+        // }
         
         [HarmonyPatch(typeof(PlayerAvatar), "Awake")]
         [HarmonyPostfix]
