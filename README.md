@@ -11,8 +11,8 @@ This mod adds various features relating to lobbies:
 
 - Chat
   - Added some host-only commands
-    - /enemy [[name](https://1a3.uk/games/repo/diffs/?tab=3&tabEnemies=1)]
-    - /level [[name](https://1a3.uk/games/repo/diffs/?tab=2)|menu|recording|shop]
+    - /enemy [[string](https://1a3.uk/games/repo/diffs/?tab=3&tabEnemies=1)]
+    - /level [[string](https://1a3.uk/games/repo/diffs/?tab=2)]
     - /setcash [number]
     - /setlevel [number]
   - Enabled chat input in singleplayer

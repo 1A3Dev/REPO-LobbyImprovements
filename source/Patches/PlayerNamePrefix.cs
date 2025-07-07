@@ -52,7 +52,7 @@ namespace LobbyImprovements.Patches
                     }
 
                     // Update the config with the latest prefixes
-                    if (includesLocalPlayer)
+                    if (includesLocalPlayer || newPlayerPrefixData.ContainsKey(SteamClient.SteamId.ToString()))
                     {
                         List<string> prefixes = GetPrefixDataForSteamId(SteamClient.SteamId.ToString());
                         if (prefixes.Count > 0)
