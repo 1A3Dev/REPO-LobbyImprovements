@@ -29,6 +29,9 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> testerOverlayEnabled;
         internal static ConfigEntry<bool> testerOverlayModule;
 
+        internal static ConfigEntry<bool> moonPhaseUIEnabled;
+        internal static ConfigEntry<bool> splashScreenUIEnabled;
+        
         private void Awake()
         {
             if (initialized) return;
@@ -108,6 +111,17 @@ namespace LobbyImprovements
             };
             testerOverlayModule = StaticConfig.Bind("Tester Overlay", "Show Module", true, "Should the name of the module you are in be shown?");
             SetupTesterOverlay(testerOverlayEnabled.Value);
+            
+            moonPhaseUIEnabled = StaticConfig.Bind("Fast Startup", "Moon Phase", true, "Should the moon phase animation be shown?");
+            splashScreenUIEnabled = StaticConfig.Bind("Fast Startup", "Splash Screen", true, "Should the splash screen be shown?");
+            try
+            {
+                harmony.PatchAll(typeof(FastStartup));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("FastStartup Patch Failed: " + e);
+            }
             
             StaticLogger.LogInfo("Patches Loaded");
         }

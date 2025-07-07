@@ -1,3 +1,8 @@
+### 1.0.4
+
+- Added config option to skip moon phase animation
+- Added config option to skip splash screen
+
 ### 1.0.3
 
 - Added missing thing to v1.0.2 changelog

@@ -19,6 +19,9 @@ This mod adds various features relating to lobbies:
     - /setlevel [number]
   - Enabled pasting into chat input
   - Enabled chat input in singleplayer
+- Fast Startup
+  - Config option to skip moon phase animation
+  - Config option to skip splash screen
 - Lobby Menu
   - Config option to make the lobby menu be shown when loading a singleplayer save file
   - Fixed a few exceptions when going to the lobby menu in singleplayer

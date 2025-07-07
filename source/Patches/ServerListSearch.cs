@@ -40,10 +40,13 @@ namespace LobbyImprovements.Patches
         {
             if (!string.IsNullOrEmpty(_searchString) && Regex.IsMatch(_searchString, "^[0-9]{17,19}$") && ulong.TryParse(_searchString, out ulong steamId))
             {
-                // Fix for infinite loading screen
-                MenuManager.instance?.PageCloseAll();
-                MenuManager.instance?.PageOpen(MenuPageIndex.Main, false);
-                
+                if (SteamApps.BuildId <= 18995935)
+                {
+                    // Fix for infinite loading screen
+                    MenuManager.instance?.PageCloseAll();
+                    MenuManager.instance?.PageOpen(MenuPageIndex.Main);
+                }
+
                 SteamManager.instance.OnGameLobbyJoinRequested(new Lobby(steamId), SteamClient.SteamId);
                 return false;
             }
