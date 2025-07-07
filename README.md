@@ -17,6 +17,7 @@ This mod adds various features relating to lobbies:
     - /valuable [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)]
     - /setcash [number]
     - /setlevel [number]
+  - Enabled pasting into chat input
   - Enabled chat input in singleplayer
 - Lobby Menu
   - Config option to make the lobby menu be shown when loading a singleplayer save file

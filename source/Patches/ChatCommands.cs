@@ -176,7 +176,7 @@ namespace LobbyImprovements.Patches
         {
             if (__instance.chatState == ChatManager.ChatState.Active && Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V))
             {
-                __instance.chatMessage += GUIUtility.systemCopyBuffer;
+                __instance.chatMessage = $"{__instance.chatMessage}{GUIUtility.systemCopyBuffer}".Substring(0, 50);
                 __instance.chatText.text = __instance.chatMessage;
                 ChatUI.instance.SemiUITextFlashColor(Color.cyan, 0.2f);
                 ChatUI.instance.SemiUISpringShakeY(2f, 5f, 0.2f);
