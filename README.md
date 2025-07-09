@@ -32,6 +32,7 @@ This mod adds various features relating to lobbies:
     - Tester - https://i.gyazo.com/555a9a4e36615d045aea7dce7ca32ca9.png
 - Saves
   - Config option to disable save file deletion
+  - Config option to enable save files for public lobbies
 - Server List
   - Made searching for a steam lobby id in the search list attempt to join the lobby
   - Added ability to paste into the search input (pasting a lobby link works as well)

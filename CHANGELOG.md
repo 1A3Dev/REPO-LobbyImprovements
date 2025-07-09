@@ -1,3 +1,9 @@
+### 1.0.5
+
+- Added config option to enable save files for public lobbies
+- Fixed being able to open chat in the main menu
+- Fixed singleplayer deaths taking you to the lobby menu (when it's not enabled in the config)
+
 ### 1.0.4
 
 - Added config option to skip moon phase animation

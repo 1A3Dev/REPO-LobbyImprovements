@@ -9,6 +9,7 @@ namespace LobbyImprovements.Patches
     {
         [HarmonyPatch(typeof(DataDirector), "SaveDeleteCheck")]
         [HarmonyPrefix]
+        [HarmonyPriority(Priority.First)]
         private static bool DataDirector_SaveDeleteCheck()
         {
             return PluginLoader.saveDeleteEnabled.Value;
@@ -19,13 +20,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void RunManager_ChangeLevel_Prefix(RunManager __instance, bool _completedLevel, bool _levelFailed, RunManager.ChangeLevelType _changeLevelType = RunManager.ChangeLevelType.Normal)
         {
-            if (SemiFunc.IsMultiplayer()) return; // Only run below logic for singleplayer
+            if (!PluginLoader.singleplayerLobbyMenu.Value || SemiFunc.IsMultiplayer()) return;
             
             if ((!SemiFunc.MenuLevel() && !SemiFunc.IsMasterClientOrSingleplayer()) || __instance.restarting)
             {
                 return;
             }
-            
             if (_levelFailed && __instance.levelCurrent == __instance.levelArena)
             {
                 __instance.debugLevel = __instance.levelLobbyMenu;
@@ -38,7 +38,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void RunManager_ChangeLevel_Postfix(RunManager __instance, bool _completedLevel, bool _levelFailed, RunManager.ChangeLevelType _changeLevelType = RunManager.ChangeLevelType.Normal)
         {
-            if (!SemiFunc.IsMultiplayer() && __instance.gameOver && __instance.debugLevel)
+            if (!SemiFunc.IsMultiplayer() && __instance.gameOver && __instance.debugLevel == __instance.levelLobbyMenu)
             {
                 __instance.debugLevel = null;
                 PluginLoader.StaticLogger.LogInfo("Resetting debug level");
@@ -56,7 +56,7 @@ namespace LobbyImprovements.Patches
             GameManager.instance.SetConnectRandom(false);
             if (saveFileName != null)
             {
-                Debug.Log("Loading save");
+                PluginLoader.StaticLogger.LogInfo("Loading save");
                 SemiFunc.SaveFileLoad(saveFileName);
             }
             else

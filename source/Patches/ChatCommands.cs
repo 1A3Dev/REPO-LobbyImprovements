@@ -183,8 +183,11 @@ namespace LobbyImprovements.Patches
                 MenuManager.instance.MenuEffectClick(MenuManager.MenuClickEffectType.Tick, pitch: 1f, volume: 0.2f, soundOnly: true);
             }
             
-            if (SemiFunc.IsMultiplayer()) return true;
-
+            if (SemiFunc.IsMultiplayer()) return true; // Only run in singleplayer
+            
+            if (SemiFunc.IsMainMenu())
+                ChatUI.instance.Hide();
+            
             __instance.PossessionActive();
             if (__instance.playerAvatar && __instance.playerAvatar.isDisabled && (__instance.possessBatchQueue.Count > 0 || __instance.currentBatch != null))
             {
@@ -217,15 +220,26 @@ namespace LobbyImprovements.Patches
                     break;
             }
             __instance.PossessChatCustomLogic();
-            if (__instance.spamTimer > 0f)
+            if (SemiFunc.IsMainMenu())
             {
-                __instance.spamTimer -= Time.deltaTime;
+                if (__instance.chatState != ChatManager.ChatState.Inactive)
+                    __instance.StateSet(ChatManager.ChatState.Inactive);
+                __instance.chatActive = false;
             }
-            if (SemiFunc.FPSImpulse15() && __instance.betrayalActive && PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
+            else
             {
-                __instance.PossessCancelSelfDestruction();
+                if (__instance.spamTimer > 0f)
+                {
+                    __instance.spamTimer -= Time.deltaTime;
+                }
+
+                if (SemiFunc.FPSImpulse15() && __instance.betrayalActive &&
+                    PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
+                {
+                    __instance.PossessCancelSelfDestruction();
+                }
             }
-            
+
             return false;
         }
     }
