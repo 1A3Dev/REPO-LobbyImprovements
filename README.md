@@ -10,7 +10,7 @@
 This mod adds various features relating to lobbies:
 
 - Chat
-  - Added some host-only commands
+  - [Host] Added some chat commands
     - /enemy [[string](https://1a3.uk/games/repo/diffs/?tab=3&tabEnemies=1)]
     - /item [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)]
     - /level [[string](https://1a3.uk/games/repo/diffs/?tab=2)]
@@ -23,7 +23,7 @@ This mod adds various features relating to lobbies:
   - Config option to skip moon phase animation
   - Config option to skip splash screen
 - Lobby Menu
-  - Config option to make the lobby menu be shown when loading a singleplayer save file
+  - [Host] Config option to make the lobby menu be shown when loading a singleplayer save file
   - Fixed a few exceptions when going to the lobby menu in singleplayer
 - Player Name Prefixes
   - This adds name prefixes for the game's developers and testers
@@ -31,8 +31,8 @@ This mod adds various features relating to lobbies:
     - Developer - https://i.gyazo.com/e81a1b64264d50b624e940b46bd9e5cb.png
     - Tester - https://i.gyazo.com/555a9a4e36615d045aea7dce7ca32ca9.png
 - Saves
-  - Config option to disable save file deletion
-  - Config option to enable save files for public lobbies
+  - [Host] Config option to disable save file deletion
+  - [Host] Config option to enable save files for public lobbies
 - Server List
   - Made searching for a steam lobby id in the search list attempt to join the lobby
   - Added ability to paste into the search input (pasting a lobby link works as well)

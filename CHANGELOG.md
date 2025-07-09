@@ -1,3 +1,9 @@
+### 1.0.5
+
+- Fixed cursor disappearing when exiting server name input popup
+- Made the popup confirming loading/starting a save file be skipped for public lobbies
+- Updated README.md to state which features only affect the lobby host
+
 ### 1.0.4
 
 - Added config option to skip moon phase animation

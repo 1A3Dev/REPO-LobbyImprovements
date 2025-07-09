@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 
 namespace LobbyImprovements.Patches
 {
@@ -16,6 +16,32 @@ namespace LobbyImprovements.Patches
         {
             lobbyPublic = false;
             saveFileCurrent = null;
+        }
+        
+        // When clicking the "New Game" or "Load Save" buttons don't show the confirmation popup
+        [HarmonyPatch(typeof(MenuButton), "OnSelect")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool MenuButton_OnSelect(MenuButton __instance)
+        {
+            if (!PluginLoader.savePublicEnabled.Value || !lobbyPublic)
+                return true;
+
+            if (__instance.menuButtonPopUp.headerText == "Start a new game?" && __instance.menuButtonPopUp.bodyText == "Do you want to start a game?")
+            {
+                MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
+                menuPageSaves?.OnNewGame();
+                return !menuPageSaves;
+            }
+
+            if (__instance.menuButtonPopUp.headerText == "Load save?" && __instance.menuButtonPopUp.bodyText == "Load this save file?")
+            {
+                MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
+                menuPageSaves?.OnLoadGame();
+                return !menuPageSaves;
+            }
+
+            return true;
         }
         
         // Makes the lobby list lobby creation show the save list menu
@@ -44,7 +70,8 @@ namespace LobbyImprovements.Patches
             if (!PluginLoader.savePublicEnabled.Value || __instance.saveFiles.Count >= 10 || !SemiFunc.MainMenuIsMultiplayer() || !lobbyPublic)
                 return true;
 
-            MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>().menuPageParent = MenuManager.instance.currentMenuPage;
+            MenuPage prevPage = MenuManager.instance.currentMenuPage;
+            MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>().menuPageParent = prevPage;
             return false;
         }
         
