@@ -22,7 +22,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void RunManager_Awake(RunManager __instance)
         {
-            if (PluginLoader.splashScreenUIEnabled.Value) return;
+            if (PluginLoader.splashScreenUIEnabled.Value || __instance.levelCurrent != __instance.levelSplashScreen) return;
             __instance.levelCurrent = __instance.levelMainMenu;
         }
     }
