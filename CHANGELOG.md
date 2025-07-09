@@ -1,7 +1,8 @@
 ### 1.0.5
 
+- Added /setname [string] to rename the current save file
 - Fixed cursor disappearing when exiting server name input popup
-- Made the popup confirming loading/starting a save file be skipped for public lobbies
+- Made the popup confirming loading/starting a save file be skipped for public lobbies (since the server name prompt is basically a confirmation)
 - Updated README.md to state which features only affect the lobby host
 
 ### 1.0.4

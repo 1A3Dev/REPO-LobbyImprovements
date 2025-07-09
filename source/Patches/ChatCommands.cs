@@ -10,6 +10,8 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class ChatCommands
     {
+        private static string defaultTeamName;
+        
         [HarmonyPatch(typeof(SemiFunc), "Command")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
@@ -166,6 +168,21 @@ namespace LobbyImprovements.Patches
                         }
                     }
                     break;
+                case "/setname":
+                    if (SemiFunc.IsMasterClientOrSingleplayer() && !string.IsNullOrWhiteSpace(StatsManager.instance.saveFileCurrent))
+                    {
+                        string teamName = string.Join(' ', commandArgs).Trim();
+                        if (teamName == StatsManager.instance.teamName)
+                            break;
+                        
+                        if (string.IsNullOrWhiteSpace(teamName))
+                            teamName = defaultTeamName ?? "R.E.P.O.";
+                        
+                        StatsManager.instance.teamName = teamName;
+                        SemiFunc.SaveFileSave();
+                        PluginLoader.StaticLogger.LogInfo($"Updated name of {StatsManager.instance.saveFileCurrent} to {StatsManager.instance.teamName}");
+                    }
+                    break;
             }
         }
         
@@ -241,6 +258,25 @@ namespace LobbyImprovements.Patches
             }
 
             return false;
+        }
+        
+        // Save File Naming
+        [HarmonyPatch(typeof(StatsManager), "Awake")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void StatsManager_Awake(StatsManager __instance)
+        {
+            if (defaultTeamName == null)
+                defaultTeamName = __instance.teamName;
+        }
+        
+        [HarmonyPatch(typeof(StatsManager), "ResetAllStats")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void StatsManager_ResetAllStats(StatsManager __instance)
+        {
+            if (defaultTeamName != null)
+                __instance.teamName = defaultTeamName;
         }
     }
 }
