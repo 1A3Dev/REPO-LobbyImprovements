@@ -1,11 +1,4 @@
-﻿using System.Collections;
-using System.Text.RegularExpressions;
-using HarmonyLib;
-using Photon.Pun;
-using Steamworks;
-using Steamworks.Data;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using HarmonyLib;
 
 namespace LobbyImprovements.Patches
 {
