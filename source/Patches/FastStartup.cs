@@ -17,16 +17,13 @@ namespace LobbyImprovements.Patches
             __instance.SetState(MoonUI.State.Hide);
         }
         
-        // [HarmonyPatch(typeof(SplashScreen), "Awake")]
-        // [HarmonyPrefix]
-        // [HarmonyWrapSafe]
-        // private static bool SplashScreen_Awake(SplashScreen __instance)
-        // {
-        //     if (PluginLoader.splashScreenUIEnabled.Value) return true;
-        //     
-        //     RunManager.instance.levelCurrent = RunManager.instance.levelMainMenu;
-        //     SceneManager.LoadSceneAsync("Reload");
-        //     return false;
-        // }
+        [HarmonyPatch(typeof(RunManager), "Awake")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static void RunManager_Awake(RunManager __instance)
+        {
+            if (PluginLoader.splashScreenUIEnabled.Value) return;
+            __instance.levelCurrent = __instance.levelMainMenu;
+        }
     }
 }
