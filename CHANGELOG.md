@@ -1,13 +1,13 @@
 # 1.0.5
 
-### ADDITIONS
+### NEW
 
 - Added `/setname [string]` to rename the current save file
 - Added more info to the README.md (such as stating which features are only used by the host)
 
 ### CHANGES
 
-- Changed /level to `/setscene` (to reduce confusion with `/setlevel`)
+- Changed `/level` to `/setscene` (to reduce confusion with `/setlevel`)
 - Made `/setcash` automatically reload the scene if in the shop (or in a gameplay level if there is an extraction in-progress)
 - Made `/setlevel` automatically reload the scene if in a gameplay level or the shop
 - When hosting a public lobby using a save file it will no longer give the confirmation popup before the server name input popup (since the server name input prompt is basically a confirmation)
@@ -20,7 +20,7 @@
 
 # 1.0.4
 
-### ADDITIONS
+### NEW
 
 - Added config option to skip moon phase animation
 - Added config option to skip splash screen
@@ -33,7 +33,7 @@
 
 # 1.0.3
 
-### ADDITIONS
+### NEW
 
 - Added missing thing to v1.0.2 changelog
 
@@ -43,7 +43,7 @@
 
 # 1.0.2
 
-### ADDITIONS
+### NEW
 
 - Added `/item [`[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)`]`
 - Added `/valuable [`[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)`]`
