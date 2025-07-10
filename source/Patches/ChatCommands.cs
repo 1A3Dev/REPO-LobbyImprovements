@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace LobbyImprovements.Patches
 {
@@ -91,7 +93,18 @@ namespace LobbyImprovements.Patches
                 case "/reloadscene":
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
-                        RunManager.instance.ChangeLevel(_completedLevel: false, _levelFailed: false);
+                        if (SemiFunc.RunIsRecording())
+                        {
+                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Recording);
+                        }
+                        else if (SemiFunc.RunIsShop())
+                        {
+                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Shop);
+                        }
+                        else if (SemiFunc.RunIsLevel())
+                        {
+                            RunManager.instance.ChangeLevel(false, false);
+                        }
                     }
                     break;
                 case "/setcash":
@@ -101,8 +114,14 @@ namespace LobbyImprovements.Patches
                         if (int.TryParse(fpsString, out var cashNum))
                         {
                             SemiFunc.StatSetRunCurrency(cashNum);
-                            if (SemiFunc.RunIsLevel() || SemiFunc.RunIsShop())
+                            if (SemiFunc.RunIsShop())
+                            {
+                                RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Shop);
+                            }
+                            else if (SemiFunc.RunIsLevel() && (RoundDirector.instance?.extractionPointCurrent?.currentState ?? 0) > ExtractionPoint.State.Idle)
+                            {
                                 RunManager.instance.ChangeLevel(false, false);
+                            }
                         }
                     }
                     break;
@@ -114,8 +133,14 @@ namespace LobbyImprovements.Patches
                         {
                             RunManager.instance.levelsCompleted = levelNum - 1;
                             SemiFunc.StatSetRunLevel(RunManager.instance.levelsCompleted);
-                            if (SemiFunc.RunIsLevel() || SemiFunc.RunIsShop())
+                            if (SemiFunc.RunIsShop())
+                            {
+                                RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Shop);
+                            }
+                            else if (SemiFunc.RunIsLevel())
+                            {
                                 RunManager.instance.ChangeLevel(false, false);
+                            }
                         }
                     }
                     break;
@@ -180,8 +205,21 @@ namespace LobbyImprovements.Patches
                         {
                             LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
                             Vector3 position = new Vector3(levelPoint.transform.position.x, levelPoint.transform.position.y + 1f, levelPoint.transform.position.z);
+
+                            string itemPath = itemToSpawn.volumeType switch
+                            {
+                                ValuableVolume.Type.Tiny => ValuableDirector.instance.tinyPath,
+                                ValuableVolume.Type.Small => ValuableDirector.instance.smallPath,
+                                ValuableVolume.Type.Medium => ValuableDirector.instance.mediumPath,
+                                ValuableVolume.Type.Big => ValuableDirector.instance.bigPath,
+                                ValuableVolume.Type.Wide => ValuableDirector.instance.widePath,
+                                ValuableVolume.Type.Tall => ValuableDirector.instance.tallPath,
+                                ValuableVolume.Type.VeryTall => ValuableDirector.instance.veryTallPath,
+                                _ => ""
+                            };
+
                             GameObject _valuable = GameManager.instance.gameMode != 0
-                                ? PhotonNetwork.InstantiateRoomObject($"{ValuableDirector.instance.resourcePath}/{itemToSpawn.name}", position, levelPoint.transform.rotation)
+                                ? PhotonNetwork.InstantiateRoomObject($"{ValuableDirector.instance.resourcePath}{itemPath}/{itemToSpawn.name}", position, levelPoint.transform.rotation)
                                 : Object.Instantiate(itemToSpawn.gameObject, position, levelPoint.transform.rotation);
                             ValuableObject component = _valuable.GetComponent<ValuableObject>();
                             component.DollarValueSetLogic();
@@ -203,7 +241,8 @@ namespace LobbyImprovements.Patches
         {
             if (__instance.chatState == ChatManager.ChatState.Active && Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V))
             {
-                __instance.chatMessage = $"{__instance.chatMessage}{GUIUtility.systemCopyBuffer}".Substring(0, 50);
+                string newMessage = $"{__instance.chatMessage}{GUIUtility.systemCopyBuffer}";
+                __instance.chatMessage = newMessage.Substring(0, Math.Min(newMessage.Length, 50));
                 __instance.chatText.text = __instance.chatMessage;
                 ChatUI.instance.SemiUITextFlashColor(Color.cyan, 0.2f);
                 ChatUI.instance.SemiUISpringShakeY(2f, 5f, 0.2f);
@@ -260,8 +299,7 @@ namespace LobbyImprovements.Patches
                     __instance.spamTimer -= Time.deltaTime;
                 }
 
-                if (SemiFunc.FPSImpulse15() && __instance.betrayalActive &&
-                    PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
+                if (SemiFunc.FPSImpulse15() && __instance.betrayalActive && PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
                 {
                     __instance.PossessCancelSelfDestruction();
                 }

@@ -2,19 +2,22 @@
 
 ### ADDITIONS
 
-- Added `/reloadscene` to reload the current level scene
+- Added `/reloadscene` to reload the current level scene (only usable in the gameplay levels, recording level and shop)
 - Added `/setname [string]` to rename the current save file
 - Added more info to the README.md (such as stating which features are only used by the host)
 
 ### CHANGES
 
 - Changed /level to /setscene (to reduce confusion with /setlevel)
-- Made /setlevel automatically reload the scene
+- Made /setcash automatically reload the scene if in the shop (or in a gameplay level if there is an extraction in-progress)
+- Made /setlevel automatically reload the scene if in a gameplay level or the shop
 - When hosting a public lobby using a save file it will no longer give the confirmation popup before the server name input popup (since the server name input prompt is basically a confirmation)
 
 ### FIXES
 
 - Fixed cursor disappearing when exiting server name input popup
+- Fixed /valuable not working in multiplayer
+- Fixed pasting into chat not working on some occasions
 
 # 1.0.4
 
@@ -37,7 +40,7 @@
 
 ### FIXES
 
-- Fixed pasting into chat bypassing the max chat message length (I knew I meant to do something...)
+- Fixed pasting into chat bypassing the max chat message length
 
 # 1.0.2
 
