@@ -88,32 +88,53 @@ namespace LobbyImprovements.Patches
                         }
                     }
                     break;
-                case "/valuable":
+                case "/reloadscene":
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
-                        string itemName = string.Join(' ', commandArgs).ToLower();
-                        List<ValuableObject> items = Resources.FindObjectsOfTypeAll<ValuableObject>()
-                            .Where(x => x)
-                            .ToList();
-                        ValuableObject itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower() == itemName);
-                        if (itemToSpawn != null)
+                        RunManager.instance.ChangeLevel(_completedLevel: false, _levelFailed: false);
+                    }
+                    break;
+                case "/setcash":
+                    if (SemiFunc.IsMasterClientOrSingleplayer())
+                    {
+                        string fpsString = string.Join(' ', commandArgs).ToLower();
+                        if (int.TryParse(fpsString, out var cashNum))
                         {
-                            LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
-                            Vector3 position = new Vector3(levelPoint.transform.position.x, levelPoint.transform.position.y + 1f, levelPoint.transform.position.z);
-                            GameObject _valuable = GameManager.instance.gameMode != 0
-                                ? PhotonNetwork.InstantiateRoomObject($"{ValuableDirector.instance.resourcePath}/{itemToSpawn.name}", position, levelPoint.transform.rotation)
-                                : Object.Instantiate(itemToSpawn.gameObject, position, levelPoint.transform.rotation);
-                            ValuableObject component = _valuable.GetComponent<ValuableObject>();
-                            component.DollarValueSetLogic();
-                            PlayerController.instance.playerAvatarScript.ChatMessageSend("Spawned Valuable!");
-                        }
-                        else
-                        {
-                            PluginLoader.StaticLogger.LogInfo($"Available Valuables: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower()).OrderBy(x => x))}");
+                            SemiFunc.StatSetRunCurrency(cashNum);
+                            if (SemiFunc.RunIsLevel() || SemiFunc.RunIsShop())
+                                RunManager.instance.ChangeLevel(false, false);
                         }
                     }
                     break;
-                case "/level":
+                case "/setlevel":
+                    if (SemiFunc.IsMasterClientOrSingleplayer())
+                    {
+                        string levelNumString = string.Join(' ', commandArgs).ToLower();
+                        if (int.TryParse(levelNumString, out var levelNum) && levelNum > 0)
+                        {
+                            RunManager.instance.levelsCompleted = levelNum - 1;
+                            SemiFunc.StatSetRunLevel(RunManager.instance.levelsCompleted);
+                            if (SemiFunc.RunIsLevel() || SemiFunc.RunIsShop())
+                                RunManager.instance.ChangeLevel(false, false);
+                        }
+                    }
+                    break;
+                case "/setname":
+                    if (SemiFunc.IsMasterClientOrSingleplayer() && !string.IsNullOrWhiteSpace(StatsManager.instance.saveFileCurrent))
+                    {
+                        string teamName = string.Join(' ', commandArgs).Trim();
+                        if (teamName == StatsManager.instance.teamName)
+                            break;
+                        
+                        if (string.IsNullOrWhiteSpace(teamName))
+                            teamName = defaultTeamName ?? "R.E.P.O.";
+                        
+                        StatsManager.instance.teamName = teamName;
+                        SemiFunc.SaveFileSave();
+                        PluginLoader.StaticLogger.LogInfo($"Updated name of {StatsManager.instance.saveFileCurrent} to {StatsManager.instance.teamName}");
+                    }
+                    break;
+                case "/setscene":
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
                         string levelName = string.Join(' ', commandArgs).ToLower();
@@ -147,40 +168,29 @@ namespace LobbyImprovements.Patches
                         }
                     }
                     break;
-                case "/setcash":
+                case "/valuable":
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
-                        string fpsString = string.Join(' ', commandArgs).ToLower();
-                        if (int.TryParse(fpsString, out var cashNum))
+                        string itemName = string.Join(' ', commandArgs).ToLower();
+                        List<ValuableObject> items = Resources.FindObjectsOfTypeAll<ValuableObject>()
+                            .Where(x => x)
+                            .ToList();
+                        ValuableObject itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower() == itemName);
+                        if (itemToSpawn != null)
                         {
-                            SemiFunc.StatSetRunCurrency(cashNum);
+                            LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
+                            Vector3 position = new Vector3(levelPoint.transform.position.x, levelPoint.transform.position.y + 1f, levelPoint.transform.position.z);
+                            GameObject _valuable = GameManager.instance.gameMode != 0
+                                ? PhotonNetwork.InstantiateRoomObject($"{ValuableDirector.instance.resourcePath}/{itemToSpawn.name}", position, levelPoint.transform.rotation)
+                                : Object.Instantiate(itemToSpawn.gameObject, position, levelPoint.transform.rotation);
+                            ValuableObject component = _valuable.GetComponent<ValuableObject>();
+                            component.DollarValueSetLogic();
+                            PlayerController.instance.playerAvatarScript.ChatMessageSend("Spawned Valuable!");
                         }
-                    }
-                    break;
-                case "/setlevel":
-                    if (SemiFunc.IsMasterClientOrSingleplayer())
-                    {
-                        string levelNumString = string.Join(' ', commandArgs).ToLower();
-                        if (int.TryParse(levelNumString, out var levelNum) && levelNum > 0)
+                        else
                         {
-                            RunManager.instance.levelsCompleted = levelNum - 1;
-                            SemiFunc.StatSetRunLevel(RunManager.instance.levelsCompleted);
+                            PluginLoader.StaticLogger.LogInfo($"Available Valuables: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower()).OrderBy(x => x))}");
                         }
-                    }
-                    break;
-                case "/setname":
-                    if (SemiFunc.IsMasterClientOrSingleplayer() && !string.IsNullOrWhiteSpace(StatsManager.instance.saveFileCurrent))
-                    {
-                        string teamName = string.Join(' ', commandArgs).Trim();
-                        if (teamName == StatsManager.instance.teamName)
-                            break;
-                        
-                        if (string.IsNullOrWhiteSpace(teamName))
-                            teamName = defaultTeamName ?? "R.E.P.O.";
-                        
-                        StatsManager.instance.teamName = teamName;
-                        SemiFunc.SaveFileSave();
-                        PluginLoader.StaticLogger.LogInfo($"Updated name of {StatsManager.instance.saveFileCurrent} to {StatsManager.instance.teamName}");
                     }
                     break;
             }

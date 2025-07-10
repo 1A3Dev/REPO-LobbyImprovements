@@ -7,8 +7,10 @@
 
 ### Features
 
+> If a feature isn't prefixed with [Host] or [Everyone] then it's client side
+
 - Chat
-  - Added some chat commands (scroll down to view the full list)
+  - Added some chat commands (the list is further down)
   - Enabled pasting into chat input
   - Enabled chat input in singleplayer
 - Fast Startup
@@ -34,15 +36,16 @@
 
 ### Commands
 
-| Name      | Arguments                                                       | Description                                  | Required Access |
-| --------- | --------------------------------------------------------------- | -------------------------------------------- | --------------- |
-| /enemy    | [[string](https://1a3.uk/games/repo/diffs/?tab=3&tabEnemies=1)] | Spawns an enemy at the closest level point   | Host            |
-| /item     | [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)]   | Spawns an item at the closest level point    | Host            |
-| /level    | [[string](https://1a3.uk/games/repo/diffs/?tab=2)]              | Switch to a different level                  | Host            |
-| /valuable | [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)]   | Spawns a valuable at the closest level point | Host            |
-| /setcash  | [number]                                                        | Set the total cash amount                    | Host            |
-| /setlevel | [number]                                                        | Switch to a different level number           | Host            |
-| /setname  | [string]                                                        | Renames the current save file from R.E.P.O.  | Host            |
+| Name         | Arguments                                                       | Description                                   | Host Only |
+| ------------ | --------------------------------------------------------------- | --------------------------------------------- | --------- |
+| /enemy       | [[string](https://1a3.uk/games/repo/diffs/?tab=3&tabEnemies=1)] | Spawns an enemy at the closest level point    | Yes       |
+| /item        | [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)]   | Spawns an item at the closest level point     | Yes       |
+| /reloadscene |                                                                 | Reloads the level scene                       | Yes       |
+| /setcash     | [number]                                                        | Sets the total cash amount                    | Yes       |
+| /setlevel    | [number]                                                        | Switches to a different level number          | Yes       |
+| /setname     | [string]                                                        | Renames the current save file from "R.E.P.O." | Yes       |
+| /setscene    | [[string](https://1a3.uk/games/repo/diffs/?tab=2)]              | Switches to a different level scene           | Yes       |
+| /valuable    | [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)]   | Spawns a valuable at the closest level point  | Yes       |
 
 ### Support
 
@@ -55,6 +58,6 @@ You can get support in any the following places:
 ### Compatibility
 
 - Supported Game Versions:
-  - v0.2.0+
+  - v0.2.x
 - Not Compatible With:
   - N/A

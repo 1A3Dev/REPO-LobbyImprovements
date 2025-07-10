@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Photon.Pun;
 using Photon.Realtime;
 using Steamworks;
+using Steamworks.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -17,8 +18,9 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PlayerNamePrefix
     {
-        // Adds a prefix to the start of player names
-        private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json";
+        private static bool prefixSingleRequest = true; // Should prefixes for all players only be requested once at game start (if false it will request the needed players on lobby join)
+        private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json"; // URL to fetch the allowed prefixes from
+        
         private static Dictionary<string, List<string>> playerPrefixData = new Dictionary<string, List<string>>();
         private static IEnumerator GetPlayerNamePrefixes(string[] steamIds, string logType)
         {
@@ -169,33 +171,42 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         internal static void SteamManager_Awake(SteamManager __instance)
         {
-            __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
-            
-            // string[] steamIds = [SteamClient.SteamId.ToString()];
-            // if (steamIds.Length > 0)
-            //     __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
+            if (prefixSingleRequest)
+            {
+                __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
+            }
+            else
+            {
+                string[] steamIds = [SteamClient.SteamId.ToString()];
+                if (steamIds.Length > 0)
+                    __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
+            }
         }
         
-        // [HarmonyPatch(typeof(SteamManager), "OnLobbyEntered")]
-        // [HarmonyPostfix]
-        // [HarmonyWrapSafe]
-        // internal static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby)
-        // {
-        //     string[] steamIds = _lobby.Members.Select(x => x.Id.ToString())
-        //         .Where(x => x != SteamClient.SteamId.ToString()).ToArray();
-        //     if (steamIds.Length > 0)
-        //         __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
-        // }
+        [HarmonyPatch(typeof(SteamManager), "OnLobbyEntered")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby)
+        {
+            if (prefixSingleRequest) return;
+            
+            string[] steamIds = _lobby.Members.Select(x => x.Id.ToString())
+                .Where(x => x != SteamClient.SteamId.ToString()).ToArray();
+            if (steamIds.Length > 0)
+                __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
+        }
         
-        // [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberJoined")]
-        // [HarmonyPostfix]
-        // [HarmonyWrapSafe]
-        // internal static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend)
-        // {
-        //     string[] steamIds = [_friend.Id.ToString()];
-        //     if (steamIds.Length > 0)
-        //         __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));
-        // }
+        [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberJoined")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend)
+        {
+            if (prefixSingleRequest) return;
+            
+            string[] steamIds = [_friend.Id.ToString()];
+            if (steamIds.Length > 0)
+                __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));
+        }
         
         [HarmonyPatch(typeof(PlayerAvatar), "Awake")]
         [HarmonyPostfix]
