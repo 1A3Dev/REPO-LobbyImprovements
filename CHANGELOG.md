@@ -1,9 +1,13 @@
-# 1.0.6-PREP
+# 1.0.6
 
 ### CHANGES
 
 - Changed saves menu header for multiplayer to show whether it's private/public multiplayer
 - Made successful commands not trigger text-to-speech
+
+### FIXES
+
+- Fixed hosting a public lobby showing an infinite loading screen on some occasions
 
 # 1.0.5
 
