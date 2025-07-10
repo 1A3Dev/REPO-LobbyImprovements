@@ -245,15 +245,6 @@ namespace LobbyImprovements.Patches
             return !ExecuteCommand(_message);
         }
         
-        // Fallback in-case other mods use SemiFunc.Command elsewhere
-        [HarmonyPatch(typeof(SemiFunc), "Command")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void SemiFunc_Command(string _command)
-        {
-            ExecuteCommand(_command);
-        }
-        
         [HarmonyPatch(typeof(ChatManager), "Update")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
