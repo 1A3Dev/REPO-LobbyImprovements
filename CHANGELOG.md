@@ -2,7 +2,6 @@
 
 ### ADDITIONS
 
-- Added `/reloadscene` to reload the current level scene (only usable in the gameplay levels, recording level and shop)
 - Added `/setname [string]` to rename the current save file
 - Added more info to the README.md (such as stating which features are only used by the host)
 

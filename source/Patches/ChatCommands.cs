@@ -90,23 +90,6 @@ namespace LobbyImprovements.Patches
                         }
                     }
                     break;
-                case "/reloadscene":
-                    if (SemiFunc.IsMasterClientOrSingleplayer())
-                    {
-                        if (SemiFunc.RunIsRecording())
-                        {
-                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Recording);
-                        }
-                        else if (SemiFunc.RunIsShop())
-                        {
-                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Shop);
-                        }
-                        else if (SemiFunc.RunIsLevel())
-                        {
-                            RunManager.instance.ChangeLevel(false, false);
-                        }
-                    }
-                    break;
                 case "/setcash":
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
@@ -165,15 +148,19 @@ namespace LobbyImprovements.Patches
                         string levelName = string.Join(' ', commandArgs).ToLower();
                         if (levelName == "recording")
                         {
-                            RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.Recording);
+                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Recording);
                         }
                         else if (levelName == "shop")
                         {
-                            RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.Shop);
+                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Shop);
                         }
                         else if (levelName == "menu")
                         {
-                            RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
+                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.LobbyMenu);
+                        }
+                        else if (levelName == "random")
+                        {
+                            RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.RunLevel);
                         }
                         else
                         {
@@ -183,12 +170,12 @@ namespace LobbyImprovements.Patches
                             RunManager.instance.debugLevel = levels.FirstOrDefault(x => Regex.Replace(x.name, "^Level - ", "").ToLower() == levelName);
                             if (RunManager.instance.debugLevel != null)
                             {
-                                RunManager.instance.ChangeLevel(true, false);
+                                RunManager.instance.ChangeLevel(false, false);
                                 RunManager.instance.debugLevel = null;
                             }
                             else
                             {
-                                PluginLoader.StaticLogger.LogInfo($"Available Levels: {string.Join(", ", levels.Select(x => Regex.Replace(x.name, "^Level - ", "").ToLower()).OrderBy(x => x))}");
+                                PluginLoader.StaticLogger.LogInfo($"Available Levels: {string.Join(", ", levels.Select(x => Regex.Replace(x.name, "^Level - ", "").ToLower()).Concat(["random"]).OrderBy(x => x))}");
                             }
                         }
                     }
