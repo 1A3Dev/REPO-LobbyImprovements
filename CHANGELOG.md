@@ -1,9 +1,17 @@
+# 1.0.6-PREP
+
+### CHANGES
+
+- Changed saves menu header for multiplayer to show whether it's private/public multiplayer
+- Made successful commands not trigger text-to-speech
+
 # 1.0.5
 
 ### NEW
 
 - Added `/setname [string]` to rename the current save file
 - Added more info to the README.md (such as stating which features are only used by the host)
+- Added `/setscene random` which makes it do a random gameplay level
 
 ### CHANGES
 

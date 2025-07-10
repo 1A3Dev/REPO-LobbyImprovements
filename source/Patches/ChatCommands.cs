@@ -13,11 +13,8 @@ namespace LobbyImprovements.Patches
     public class ChatCommands
     {
         private static string defaultTeamName;
-        
-        [HarmonyPatch(typeof(SemiFunc), "Command")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void SemiFunc_Command(string _command)
+
+        private static bool ExecuteCommand(string _command)
         {
             string[] args = _command.Split(' ');
             string command = args.Length > 0 ? args[0].ToLower() : "";
@@ -57,13 +54,12 @@ namespace LobbyImprovements.Patches
                                 gameObject.GetComponentInChildren<Enemy>()?.EnemyTeleported(levelPoint.transform.position);
                                 component.firstSpawnPointUsed = true;
                             }
+                            
+                            PlayerAvatar.instance.ChatMessageSpeak("Spawned Enemy", PlayerAvatar.instance.isCrouching);
+                            return true;
+                        }
 
-                            PlayerController.instance.playerAvatarScript.ChatMessageSend("Spawned Enemy!");
-                        }
-                        else
-                        {
-                            PluginLoader.StaticLogger.LogInfo($"Available Enemies: {string.Join(", ", enemySetups.Select(x => Regex.Replace(x.name, "^Enemy - ", "").ToLower()).OrderBy(x => x))}");
-                        }
+                        PluginLoader.StaticLogger.LogInfo($"Available Enemies: {string.Join(", ", enemySetups.Select(x => Regex.Replace(x.name, "^Enemy - ", "").ToLower()).OrderBy(x => x))}");
                     }
                     break;
                 case "/item":
@@ -81,20 +77,19 @@ namespace LobbyImprovements.Patches
                             GameObject gameObject = GameManager.instance.gameMode != 0
                                 ? PhotonNetwork.InstantiateRoomObject($"Items/{itemToSpawn.prefab.name}", position, levelPoint.transform.rotation)
                                 : Object.Instantiate(itemToSpawn.prefab, position, levelPoint.transform.rotation);
+                            
+                            PlayerAvatar.instance.ChatMessageSpeak("Spawned Item", PlayerAvatar.instance.isCrouching);
+                            return true;
+                        }
 
-                            PlayerController.instance.playerAvatarScript.ChatMessageSend("Spawned Item!");
-                        }
-                        else
-                        {
-                            PluginLoader.StaticLogger.LogInfo($"Available Items: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "^Item ", "").ToLower()).OrderBy(x => x))}");
-                        }
+                        PluginLoader.StaticLogger.LogInfo($"Available Items: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "^Item ", "").ToLower()).OrderBy(x => x))}");
                     }
                     break;
                 case "/setcash":
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
-                        string fpsString = string.Join(' ', commandArgs).ToLower();
-                        if (int.TryParse(fpsString, out var cashNum))
+                        string cashNumString = string.Join(' ', commandArgs).ToLower();
+                        if (int.TryParse(cashNumString, out var cashNum))
                         {
                             SemiFunc.StatSetRunCurrency(cashNum);
                             if (SemiFunc.RunIsShop())
@@ -105,6 +100,12 @@ namespace LobbyImprovements.Patches
                             {
                                 RunManager.instance.ChangeLevel(false, false);
                             }
+                            else
+                            {
+                                PlayerAvatar.instance.ChatMessageSpeak("Updated Cash Amount", PlayerAvatar.instance.isCrouching);
+                            }
+
+                            return true;
                         }
                     }
                     break;
@@ -124,6 +125,12 @@ namespace LobbyImprovements.Patches
                             {
                                 RunManager.instance.ChangeLevel(false, false);
                             }
+                            else
+                            {
+                                PlayerAvatar.instance.ChatMessageSpeak("Updated Level Number", PlayerAvatar.instance.isCrouching);
+                            }
+
+                            return true;
                         }
                     }
                     break;
@@ -140,6 +147,9 @@ namespace LobbyImprovements.Patches
                         StatsManager.instance.teamName = teamName;
                         SemiFunc.SaveFileSave();
                         PluginLoader.StaticLogger.LogInfo($"Updated name of {StatsManager.instance.saveFileCurrent} to {StatsManager.instance.teamName}");
+                        
+                        PlayerAvatar.instance.ChatMessageSpeak("Renamed Save File", PlayerAvatar.instance.isCrouching);
+                        return true;
                     }
                     break;
                 case "/setscene":
@@ -149,35 +159,39 @@ namespace LobbyImprovements.Patches
                         if (levelName == "recording")
                         {
                             RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Recording);
+                            return true;
                         }
-                        else if (levelName == "shop")
+
+                        if (levelName == "shop")
                         {
                             RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Shop);
+                            return true;
                         }
-                        else if (levelName == "menu")
+
+                        if (levelName == "menu")
                         {
                             RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.LobbyMenu);
+                            return true;
                         }
-                        else if (levelName == "random")
+
+                        if (levelName == "random")
                         {
                             RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.RunLevel);
+                            return true;
                         }
-                        else
+
+                        List<Level> levels = Resources.FindObjectsOfTypeAll<Level>()
+                            .Where(x => x && x.name != "Level - Main Menu" && x.name != "Level - Splash Screen" && x.name != "Level - Tutorial")
+                            .ToList();
+                        RunManager.instance.debugLevel = levels.FirstOrDefault(x => Regex.Replace(x.name, "^Level - ", "").ToLower() == levelName);
+                        if (RunManager.instance.debugLevel != null)
                         {
-                            List<Level> levels = Resources.FindObjectsOfTypeAll<Level>()
-                                .Where(x => x && x.name != "Level - Main Menu" && x.name != "Level - Splash Screen" && x.name != "Level - Tutorial")
-                                .ToList();
-                            RunManager.instance.debugLevel = levels.FirstOrDefault(x => Regex.Replace(x.name, "^Level - ", "").ToLower() == levelName);
-                            if (RunManager.instance.debugLevel != null)
-                            {
-                                RunManager.instance.ChangeLevel(false, false);
-                                RunManager.instance.debugLevel = null;
-                            }
-                            else
-                            {
-                                PluginLoader.StaticLogger.LogInfo($"Available Levels: {string.Join(", ", levels.Select(x => Regex.Replace(x.name, "^Level - ", "").ToLower()).Concat(["random"]).OrderBy(x => x))}");
-                            }
+                            RunManager.instance.ChangeLevel(false, false);
+                            RunManager.instance.debugLevel = null;
+                            return true;
                         }
+
+                        PluginLoader.StaticLogger.LogInfo($"Available Levels: {string.Join(", ", levels.Select(x => Regex.Replace(x.name, "^Level - ", "").ToLower()).Concat(["random"]).OrderBy(x => x))}");
                     }
                     break;
                 case "/valuable":
@@ -210,15 +224,34 @@ namespace LobbyImprovements.Patches
                                 : Object.Instantiate(itemToSpawn.gameObject, position, levelPoint.transform.rotation);
                             ValuableObject component = _valuable.GetComponent<ValuableObject>();
                             component.DollarValueSetLogic();
-                            PlayerController.instance.playerAvatarScript.ChatMessageSend("Spawned Valuable!");
+                            
+                            PlayerAvatar.instance.ChatMessageSpeak("Spawned Valuable", PlayerAvatar.instance.isCrouching);
+                            return true;
                         }
-                        else
-                        {
-                            PluginLoader.StaticLogger.LogInfo($"Available Valuables: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower()).OrderBy(x => x))}");
-                        }
+
+                        PluginLoader.StaticLogger.LogInfo($"Available Valuables: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower()).OrderBy(x => x))}");
                     }
                     break;
             }
+            
+            return false;
+        }
+
+        [HarmonyPatch(typeof(PlayerAvatar), "ChatMessageSend")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool PlayerAvatar_ChatMessageSend(string _message)
+        {
+            return !ExecuteCommand(_message);
+        }
+        
+        // Fallback in-case other mods use SemiFunc.Command elsewhere
+        [HarmonyPatch(typeof(SemiFunc), "Command")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void SemiFunc_Command(string _command)
+        {
+            ExecuteCommand(_command);
         }
         
         [HarmonyPatch(typeof(ChatManager), "Update")]
@@ -237,10 +270,13 @@ namespace LobbyImprovements.Patches
             }
             
             if (SemiFunc.IsMultiplayer()) return true; // Only run in singleplayer
-            
+
             if (SemiFunc.IsMainMenu())
+            {
                 ChatUI.instance.Hide();
-            
+                return false;
+            }
+
             __instance.PossessionActive();
             if (__instance.playerAvatar && __instance.playerAvatar.isDisabled && (__instance.possessBatchQueue.Count > 0 || __instance.currentBatch != null))
             {
@@ -278,18 +314,16 @@ namespace LobbyImprovements.Patches
                 if (__instance.chatState != ChatManager.ChatState.Inactive)
                     __instance.StateSet(ChatManager.ChatState.Inactive);
                 __instance.chatActive = false;
+                return false;
             }
-            else
+            if (__instance.spamTimer > 0f)
             {
-                if (__instance.spamTimer > 0f)
-                {
-                    __instance.spamTimer -= Time.deltaTime;
-                }
+                __instance.spamTimer -= Time.deltaTime;
+            }
 
-                if (SemiFunc.FPSImpulse15() && __instance.betrayalActive && PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
-                {
-                    __instance.PossessCancelSelfDestruction();
-                }
+            if (SemiFunc.FPSImpulse15() && __instance.betrayalActive && PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
+            {
+                __instance.PossessCancelSelfDestruction();
             }
 
             return false;
