@@ -1,3 +1,9 @@
+# 1.0.7-PRE
+
+### NEW
+
+- Added steam rich presence grouping
+
 # 1.0.6
 
 ### CHANGES

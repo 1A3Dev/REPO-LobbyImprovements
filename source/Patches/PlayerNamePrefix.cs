@@ -188,6 +188,9 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         internal static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby)
         {
+            SteamFriends.SetRichPresence("steam_player_group", _lobby.Id.ToString());
+            SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
+            
             if (prefixSingleRequest) return;
             
             string[] steamIds = _lobby.Members.Select(x => x.Id.ToString())
@@ -201,6 +204,8 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         internal static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend)
         {
+            SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
+            
             if (prefixSingleRequest) return;
             
             string[] steamIds = [_friend.Id.ToString()];
@@ -302,6 +307,23 @@ namespace LobbyImprovements.Patches
                     break;
                 }
             }
+        }
+        
+        // Steam Rich Presence
+        [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberLeft")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void SteamManager_OnLobbyMemberLeft(Lobby _lobby, Friend _friend)
+        {
+            SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
+        }
+        
+        [HarmonyPatch(typeof(SteamManager), "LeaveLobby")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void SteamManager_LeaveLobby()
+        {
+            SteamFriends.ClearRichPresence();
         }
     }
 }
