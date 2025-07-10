@@ -7,7 +7,7 @@
 
 ### Information
 
-This mod is mainly for R.E.P.O game testers therefore some features are turned off by default so I'd recommend having a quick look through the config and making sure everything is configured how you want it.
+This mod is mainly for R.E.P.O game testers therefore some features are turned off by default so I'd recommend checking the config is configured how you want it.
 
 ### Features
 
