@@ -50,11 +50,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || __instance.searchInProgress)
-                return true;
-
             SemiFunc.MainMenuSetMultiplayer();
             lobbyPublic = true;
+            
+            if (!PluginLoader.savePublicEnabled.Value)
+                return true;
+
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.Saves);
             return false;
@@ -67,6 +68,7 @@ namespace LobbyImprovements.Patches
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
             saveFileCurrent = null;
+            
             if (!PluginLoader.savePublicEnabled.Value || __instance.saveFiles.Count >= 10 || !SemiFunc.MainMenuIsMultiplayer() || !lobbyPublic)
                 return true;
 
@@ -91,10 +93,14 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnLoadGame(MenuPageSaves __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || !SemiFunc.MainMenuIsMultiplayer() || !lobbyPublic)
+            if (!SemiFunc.MainMenuIsMultiplayer() || !lobbyPublic)
+                return true;
+            
+            saveFileCurrent = StatsManager.instance.saveFileCurrent;
+            
+            if (!PluginLoader.savePublicEnabled.Value)
                 return true;
 
-            saveFileCurrent = StatsManager.instance.saveFileCurrent;
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
             MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>().menuPageParent = prevPage;
             return false;
