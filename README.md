@@ -5,9 +5,11 @@
 [![Discord](https://img.shields.io/discord/646323142737788928?style=for-the-badge&logo=discord&logoColor=white&label=Discord)](https://discord.gg/CKqVFPRtKp)
 [![Ko-fi](https://img.shields.io/badge/Donate-F16061.svg?style=for-the-badge&logo=ko-fi&logoColor=white&label=Ko-fi)](https://ko-fi.com/K3K8SOM8U)
 
-### Features
+### Information
 
-> If a feature isn't prefixed with [Host] or [Everyone] then it's client side
+This mod is mainly for R.E.P.O game testers therefore some features are turned off by default so I'd recommend having a quick look through the config and making sure everything is configured how you want it.
+
+### Features
 
 - Chat
   - Added some chat commands (the list is further down)
@@ -32,7 +34,9 @@
   - Made searching for a steam lobby id in the search list attempt to join the lobby
   - Ability to paste into the search input (pasting a lobby link works as well)
 - Tester Overlay
-  - An overlay in the bottom right which shows the current room name and game version (mainly for the game testers)
+  - An overlay in the bottom right which shows the current room name and game version
+
+Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client side
 
 ### Commands
 

@@ -3,7 +3,7 @@
 ### CHANGES
 
 - Changed saves menu header for multiplayer to show whether it's private/public multiplayer
-- Made successful commands not trigger text-to-speech
+- Disabled text-to-speech for successful commands
 
 ### FIXES
 
