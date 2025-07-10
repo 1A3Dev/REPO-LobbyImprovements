@@ -75,6 +75,17 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
+        [HarmonyPatch(typeof(MenuPageSaves), "Start")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void MenuPageSaves_Start(MenuPageSaves __instance)
+        {
+            if (SemiFunc.MainMenuIsMultiplayer())
+            {
+                __instance.gameModeHeader.text = lobbyPublic ? "Public Multiplayer" : "Private Multiplayer";
+            }
+        }
+        
         [HarmonyPatch(typeof(MenuPageSaves), "OnLoadGame")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
