@@ -7,15 +7,15 @@
 
 ### CHANGES
 
-- Changed /level to /setscene (to reduce confusion with /setlevel)
-- Made /setcash automatically reload the scene if in the shop (or in a gameplay level if there is an extraction in-progress)
-- Made /setlevel automatically reload the scene if in a gameplay level or the shop
+- Changed /level to `/setscene` (to reduce confusion with `/setlevel`)
+- Made `/setcash` automatically reload the scene if in the shop (or in a gameplay level if there is an extraction in-progress)
+- Made `/setlevel` automatically reload the scene if in a gameplay level or the shop
 - When hosting a public lobby using a save file it will no longer give the confirmation popup before the server name input popup (since the server name input prompt is basically a confirmation)
 
 ### FIXES
 
 - Fixed cursor disappearing when exiting server name input popup
-- Fixed /valuable not working in multiplayer
+- Fixed `/valuable` not working in multiplayer
 - Fixed pasting into chat not working on some occasions
 
 # 1.0.4
@@ -45,8 +45,8 @@
 
 ### ADDITIONS
 
-- Added /item [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)]
-- Added /valuable [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)]
+- Added `/item [`[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)`]`
+- Added `/valuable [`[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)`]`
 - Added ability to paste into chat
 
 ### FIXES
