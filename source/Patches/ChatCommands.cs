@@ -260,18 +260,18 @@ namespace LobbyImprovements.Patches
                 MenuManager.instance.MenuEffectClick(MenuManager.MenuClickEffectType.Tick, pitch: 1f, volume: 0.2f, soundOnly: true);
             }
             
-            if (SemiFunc.IsMultiplayer()) return true; // Only run in singleplayer
-
-            if (SemiFunc.IsMainMenu())
-            {
-                ChatUI.instance.Hide();
-                return false;
-            }
+            if (SemiFunc.IsMultiplayer())
+                return true; // Don't bother overwriting for multiplayer
 
             __instance.PossessionActive();
             if (__instance.playerAvatar && __instance.playerAvatar.isDisabled && (__instance.possessBatchQueue.Count > 0 || __instance.currentBatch != null))
             {
                 __instance.InterruptCurrentPossessBatch();
+            }
+            if (SemiFunc.IsMainMenu()) // !IsMultiplayer -> IsMainMenu
+            {
+                ChatUI.instance.Hide();
+                return false;
             }
             if (!LevelGenerator.Instance.Generated)
             {
@@ -300,7 +300,7 @@ namespace LobbyImprovements.Patches
                     break;
             }
             __instance.PossessChatCustomLogic();
-            if (SemiFunc.IsMainMenu())
+            if (SemiFunc.IsMainMenu()) // !IsMultiplayer -> IsMainMenu
             {
                 if (__instance.chatState != ChatManager.ChatState.Inactive)
                     __instance.StateSet(ChatManager.ChatState.Inactive);
@@ -311,7 +311,6 @@ namespace LobbyImprovements.Patches
             {
                 __instance.spamTimer -= Time.deltaTime;
             }
-
             if (SemiFunc.FPSImpulse15() && __instance.betrayalActive && PlayerController.instance.playerAvatarScript.RoomVolumeCheck.inTruck)
             {
                 __instance.PossessCancelSelfDestruction();
