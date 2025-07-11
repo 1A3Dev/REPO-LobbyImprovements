@@ -5,8 +5,9 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PublicLobbySaves
     {
-        public static bool lobbyPublic;
-        public static string saveFileCurrent;
+        private static bool isPublicSavesMenuOpen; // When within the public lobby saves menu, this is set to true
+        private static bool isPublicSaveFileSelected; // When hosting a public lobby, this is set to true
+        private static string saveFileCurrent;
         
         // Reset lobbyPublic when hosting a regular lobby
         [HarmonyPatch(typeof(MainMenuOpen), "MainMenuSetState")]
@@ -14,7 +15,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void MainMenuOpen_MainMenuSetState()
         {
-            lobbyPublic = false;
+            isPublicSavesMenuOpen = false;
             saveFileCurrent = null;
         }
         
@@ -24,10 +25,10 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuButton_OnSelect(MenuButton __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || !lobbyPublic)
+            if (!isPublicSavesMenuOpen || !__instance.menuButtonPopUp)
                 return true;
 
-            if (__instance.menuButtonPopUp.headerText == "Start a new game?" && __instance.menuButtonPopUp.bodyText == "Do you want to start a game?")
+            if (__instance.menuButtonPopUp.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
             {
                 MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
                 menuPageSaves?.OnNewGame();
@@ -50,12 +51,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
         {
-            SemiFunc.MainMenuSetMultiplayer();
-            lobbyPublic = true;
-            
             if (!PluginLoader.savePublicEnabled.Value)
                 return true;
 
+            SemiFunc.MainMenuSetMultiplayer();
+            isPublicSavesMenuOpen = true;
+            
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.Saves);
             return false;
@@ -69,7 +70,7 @@ namespace LobbyImprovements.Patches
         {
             saveFileCurrent = null;
             
-            if (!PluginLoader.savePublicEnabled.Value || __instance.saveFiles.Count >= 10 || !SemiFunc.MainMenuIsMultiplayer() || !lobbyPublic)
+            if (!isPublicSavesMenuOpen || __instance.saveFiles.Count >= 10)
                 return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
@@ -84,7 +85,7 @@ namespace LobbyImprovements.Patches
         {
             if (SemiFunc.MainMenuIsMultiplayer())
             {
-                __instance.gameModeHeader.text = lobbyPublic ? "Public Multiplayer" : "Private Multiplayer";
+                __instance.gameModeHeader.text = isPublicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
             }
         }
         
@@ -93,13 +94,10 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnLoadGame(MenuPageSaves __instance)
         {
-            if (!SemiFunc.MainMenuIsMultiplayer() || !lobbyPublic)
+            if (!isPublicSavesMenuOpen)
                 return true;
             
             saveFileCurrent = StatsManager.instance.saveFileCurrent;
-            
-            if (!PluginLoader.savePublicEnabled.Value)
-                return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
             MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>().menuPageParent = prevPage;
@@ -112,7 +110,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value)
+            if (!isPublicSavesMenuOpen)
                 return true;
             
             MenuManager.instance.PageCloseAllExcept(MenuPageIndex.Saves);
@@ -126,8 +124,10 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnGoBack(MenuPageSaves __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || !lobbyPublic)
+            if (!isPublicSavesMenuOpen)
                 return true;
+
+            isPublicSavesMenuOpen = false;
             
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
@@ -140,14 +140,22 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool SemiFunc_SaveFileCreate(NetworkConnect __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || !GameManager.instance.connectRandom || string.IsNullOrWhiteSpace(saveFileCurrent))
-            {
+            if (!PluginLoader.savePublicEnabled.Value || !isPublicSaveFileSelected || string.IsNullOrWhiteSpace(saveFileCurrent))
                 return true;
-            }
             
             PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + saveFileCurrent);
             SemiFunc.SaveFileLoad(saveFileCurrent);
             return false;
+        }
+        
+        // Set isPublicSaveFileSelected when hosting a lobby
+        [HarmonyPatch(typeof(GameManager), "SetConnectRandom")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void GameManager_SetConnectRandom(bool _connectRandom)
+        {
+            isPublicSavesMenuOpen = false;
+            isPublicSaveFileSelected = GameManager.instance.connectRandom;
         }
         
         // Allow public lobbies to be saved
@@ -156,7 +164,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void SemiFunc_SaveFileSave()
         {
-            if (!PluginLoader.savePublicEnabled.Value || !GameManager.instance.connectRandom)
+            if (!PluginLoader.savePublicEnabled.Value || !isPublicSaveFileSelected)
                 return;
             
             StatsManager.instance.SaveFileSave();
@@ -168,6 +176,9 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void DataDirector_SaveDeleteCheck_Prefix()
         {
+            if (!PluginLoader.savePublicEnabled.Value || !isPublicSaveFileSelected)
+                return;
+            
             GameManager.instance.connectRandom = false;
         }
         
@@ -177,7 +188,10 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void DataDirector_SaveDeleteCheck_Postfix()
         {
-            GameManager.instance.connectRandom = lobbyPublic;
+            if (!isPublicSaveFileSelected)
+                return;
+            
+            GameManager.instance.connectRandom = true;
         }
     }
 }

@@ -21,8 +21,7 @@ namespace LobbyImprovements.Patches
                 Match match = Regex.Match(clipboard, @"steam://joinlobby/\d+/(\d+)/\d+");
                 if (match.Success)
                 {
-                    string lobbyId = match.Groups[1].Value;
-                    __instance.menuTextInput.textCurrent += lobbyId;
+                    __instance.menuTextInput.textCurrent += match.Groups[1].Value;
                 }
                 else
                 {
