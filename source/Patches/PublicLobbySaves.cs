@@ -7,9 +7,37 @@ namespace LobbyImprovements.Patches
     {
         private static bool publicSavesMenuOpen;
         private static string saveFileCurrent;
-        private static bool connectRandomCached;
         
-        // When clicking the "New Game" or "Load Save" button, skip the confirmation popup
+        // Server List Menu -> Create New -> Saves Menu
+        [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
+        {
+            if (!PluginLoader.savePublicEnabled.Value)
+                return true;
+
+            SemiFunc.MainMenuSetMultiplayer();
+            publicSavesMenuOpen = true;
+            
+            MenuManager.instance.PageCloseAll();
+            MenuManager.instance.PageOpen(MenuPageIndex.Saves);
+            return false;
+        }
+        
+        // Override saves menu header
+        [HarmonyPatch(typeof(MenuPageSaves), "Start")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void MenuPageSaves_Start(MenuPageSaves __instance)
+        {
+            if (SemiFunc.MainMenuIsMultiplayer())
+            {
+                __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
+            }
+        }
+        
+        // Saves Menu > New Game/Load Save > Server Name (Skip Confirmation Popup)
         [HarmonyPatch(typeof(MenuButton), "OnSelect")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -35,24 +63,7 @@ namespace LobbyImprovements.Patches
             return true;
         }
         
-        // Makes the lobby list lobby creation show the save list menu
-        [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
-        {
-            if (!PluginLoader.savePublicEnabled.Value)
-                return true;
-
-            SemiFunc.MainMenuSetMultiplayer();
-            publicSavesMenuOpen = true;
-            
-            MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.Saves);
-            return false;
-        }
-        
-        // Makes loading/creating a save file for a public lobby show the lobby name prompt
+        // Saves Menu > New Game > Lobby Name Input
         [HarmonyPatch(typeof(MenuPageSaves), "OnNewGame")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -68,17 +79,7 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        [HarmonyPatch(typeof(MenuPageSaves), "Start")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void MenuPageSaves_Start(MenuPageSaves __instance)
-        {
-            if (SemiFunc.MainMenuIsMultiplayer())
-            {
-                __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
-            }
-        }
-        
+        // Saves Menu > Load Save > Lobby Name Input
         [HarmonyPatch(typeof(MenuPageSaves), "OnLoadGame")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -97,7 +98,7 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // When exiting the lobby name prompt, go back to the save list instead of the server list
+        // Lobby Name Input > Saves Menu
         [HarmonyPatch(typeof(MenuPageServerListCreateNew), "ExitPage")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -111,7 +112,7 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // When exiting the save list, go back to the server list
+        // Saves Menu > Server List
         [HarmonyPatch(typeof(MenuPageSaves), "OnGoBack")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -127,19 +128,8 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Prevent NetworkConnect.OnJoinedRoom from creating an extra save file
-        [HarmonyPatch(typeof(SemiFunc), "SaveFileCreate")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool SemiFunc_SaveFileCreate(NetworkConnect __instance)
-        {
-            if (!PluginLoader.savePublicEnabled.Value || !connectRandomCached || string.IsNullOrWhiteSpace(saveFileCurrent))
-                return true;
-            
-            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + saveFileCurrent);
-            SemiFunc.SaveFileLoad(saveFileCurrent);
-            return false;
-        }
+        // Cache the initial value of connectRandom when the lobby is created
+        private static bool connectRandomCached;
         
         [HarmonyPatch(typeof(GameManager), "SetConnectRandom")]
         [HarmonyPostfix]
@@ -149,7 +139,21 @@ namespace LobbyImprovements.Patches
             connectRandomCached = GameManager.instance.connectRandom;
         }
         
-        // Allow public lobbies to be saved
+        // Prevent NetworkConnect.OnJoinedRoom from creating an extra save file
+        [HarmonyPatch(typeof(SemiFunc), "SaveFileCreate")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool SemiFunc_SaveFileCreate(NetworkConnect __instance)
+        {
+            if (!connectRandomCached || string.IsNullOrWhiteSpace(saveFileCurrent))
+                return true;
+            
+            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + saveFileCurrent);
+            SemiFunc.SaveFileLoad(saveFileCurrent);
+            return false;
+        }
+        
+        // Override logic that prevents saving when connectRandom is true
         [HarmonyPatch(typeof(SemiFunc), "SaveFileSave")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
