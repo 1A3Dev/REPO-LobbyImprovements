@@ -5,8 +5,8 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PublicLobbySaves
     {
-        private static bool isPublicSavesMenuOpen; // When within the public lobby saves menu, this is set to true
-        private static bool isPublicSaveFileSelected; // When hosting a public lobby, this is set to true
+        private static bool isPublicSavesMenuOpen;
+        private static bool connectRandomCached;
         private static string saveFileCurrent;
         
         // Reset lobbyPublic when hosting a regular lobby
@@ -140,7 +140,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool SemiFunc_SaveFileCreate(NetworkConnect __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || !isPublicSaveFileSelected || string.IsNullOrWhiteSpace(saveFileCurrent))
+            if (!PluginLoader.savePublicEnabled.Value || !connectRandomCached || string.IsNullOrWhiteSpace(saveFileCurrent))
                 return true;
             
             PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + saveFileCurrent);
@@ -148,14 +148,14 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Set isPublicSaveFileSelected when hosting a lobby
+        // Ensure 
         [HarmonyPatch(typeof(GameManager), "SetConnectRandom")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void GameManager_SetConnectRandom(bool _connectRandom)
         {
             isPublicSavesMenuOpen = false;
-            isPublicSaveFileSelected = GameManager.instance.connectRandom;
+            connectRandomCached = GameManager.instance.connectRandom;
         }
         
         // Allow public lobbies to be saved
@@ -164,7 +164,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void SemiFunc_SaveFileSave()
         {
-            if (!PluginLoader.savePublicEnabled.Value || !isPublicSaveFileSelected)
+            if (!PluginLoader.savePublicEnabled.Value || !GameManager.instance.connectRandom)
                 return;
             
             StatsManager.instance.SaveFileSave();
@@ -176,7 +176,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void DataDirector_SaveDeleteCheck_Prefix()
         {
-            if (!PluginLoader.savePublicEnabled.Value || !isPublicSaveFileSelected)
+            if (!PluginLoader.savePublicEnabled.Value || !connectRandomCached)
                 return;
             
             GameManager.instance.connectRandom = false;
@@ -188,7 +188,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void DataDirector_SaveDeleteCheck_Postfix()
         {
-            if (!isPublicSaveFileSelected)
+            if (!connectRandomCached)
                 return;
             
             GameManager.instance.connectRandom = true;

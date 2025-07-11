@@ -1,8 +1,12 @@
-# 1.0.7-PRE
+# 1.0.7
 
 ### NEW
 
 - Added steam rich presence grouping
+
+### FIXES
+
+- Improved stability of public lobby saving
 
 # 1.0.6
 
