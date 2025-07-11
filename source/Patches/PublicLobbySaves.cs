@@ -5,27 +5,17 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PublicLobbySaves
     {
-        private static bool isPublicSavesMenuOpen;
-        private static bool connectRandomCached;
+        private static bool publicSavesMenuOpen;
         private static string saveFileCurrent;
+        private static bool connectRandomCached;
         
-        // Reset lobbyPublic when hosting a regular lobby
-        [HarmonyPatch(typeof(MainMenuOpen), "MainMenuSetState")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void MainMenuOpen_MainMenuSetState()
-        {
-            isPublicSavesMenuOpen = false;
-            saveFileCurrent = null;
-        }
-        
-        // When clicking the "New Game" or "Load Save" buttons don't show the confirmation popup
+        // When clicking the "New Game" or "Load Save" button, skip the confirmation popup
         [HarmonyPatch(typeof(MenuButton), "OnSelect")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
         private static bool MenuButton_OnSelect(MenuButton __instance)
         {
-            if (!isPublicSavesMenuOpen || !__instance.menuButtonPopUp)
+            if (!publicSavesMenuOpen || !__instance.menuButtonPopUp)
                 return true;
 
             if (__instance.menuButtonPopUp.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
@@ -55,7 +45,7 @@ namespace LobbyImprovements.Patches
                 return true;
 
             SemiFunc.MainMenuSetMultiplayer();
-            isPublicSavesMenuOpen = true;
+            publicSavesMenuOpen = true;
             
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.Saves);
@@ -70,7 +60,7 @@ namespace LobbyImprovements.Patches
         {
             saveFileCurrent = null;
             
-            if (!isPublicSavesMenuOpen || __instance.saveFiles.Count >= 10)
+            if (!publicSavesMenuOpen || __instance.saveFiles.Count >= 10)
                 return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
@@ -85,7 +75,7 @@ namespace LobbyImprovements.Patches
         {
             if (SemiFunc.MainMenuIsMultiplayer())
             {
-                __instance.gameModeHeader.text = isPublicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
+                __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
             }
         }
         
@@ -94,9 +84,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnLoadGame(MenuPageSaves __instance)
         {
-            if (!isPublicSavesMenuOpen)
+            if (!publicSavesMenuOpen)
+            {
+                saveFileCurrent = null;
                 return true;
-            
+            }
+
             saveFileCurrent = StatsManager.instance.saveFileCurrent;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
@@ -110,7 +103,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
         {
-            if (!isPublicSavesMenuOpen)
+            if (!publicSavesMenuOpen)
                 return true;
             
             MenuManager.instance.PageCloseAllExcept(MenuPageIndex.Saves);
@@ -124,10 +117,10 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnGoBack(MenuPageSaves __instance)
         {
-            if (!isPublicSavesMenuOpen)
+            if (!publicSavesMenuOpen)
                 return true;
 
-            isPublicSavesMenuOpen = false;
+            publicSavesMenuOpen = false;
             
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
@@ -148,13 +141,11 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Ensure 
         [HarmonyPatch(typeof(GameManager), "SetConnectRandom")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void GameManager_SetConnectRandom(bool _connectRandom)
         {
-            isPublicSavesMenuOpen = false;
             connectRandomCached = GameManager.instance.connectRandom;
         }
         

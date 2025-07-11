@@ -6,7 +6,7 @@
 
 ### FIXES
 
-- Improved stability of public lobby saving
+- Improved stability of hosting and joining public lobbies (public lobby save logic now only runs when required)
 
 # 1.0.6
 
