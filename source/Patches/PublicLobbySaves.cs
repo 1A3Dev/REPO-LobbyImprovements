@@ -1,4 +1,6 @@
 using HarmonyLib;
+using Steamworks;
+using UnityEngine;
 
 namespace LobbyImprovements.Patches
 {
@@ -6,7 +8,7 @@ namespace LobbyImprovements.Patches
     public class PublicLobbySaves
     {
         private static bool publicSavesMenuOpen;
-        private static string saveFileCurrent;
+        private static string currentSaveFileName;
         
         // Server List Menu -> Create New -> Saves Menu
         [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
@@ -69,13 +71,16 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
-            saveFileCurrent = null;
+            currentSaveFileName = null;
             
             if (!publicSavesMenuOpen || __instance.saveFiles.Count >= 10)
                 return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
-            MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>().menuPageParent = prevPage;
+            MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
+            menuPageServerListCreateNew.menuPageParent = prevPage;
+            
+            menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
             return false;
         }
         
@@ -87,14 +92,21 @@ namespace LobbyImprovements.Patches
         {
             if (!publicSavesMenuOpen)
             {
-                saveFileCurrent = null;
+                currentSaveFileName = null;
                 return true;
             }
 
-            saveFileCurrent = StatsManager.instance.saveFileCurrent;
+            currentSaveFileName = __instance.currentSaveFileName;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
-            MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>().menuPageParent = prevPage;
+            MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
+            menuPageServerListCreateNew.menuPageParent = prevPage;
+            
+            string teamName = StatsManager.instance.SaveFileGetTeamName(currentSaveFileName);
+            if (!string.IsNullOrWhiteSpace(teamName) && teamName != ChatCommands.defaultTeamName)
+                menuPageServerListCreateNew.menuTextInput.textCurrent = teamName;
+            else
+                menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
             return false;
         }
         
@@ -145,11 +157,20 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool SemiFunc_SaveFileCreate(NetworkConnect __instance)
         {
-            if (!connectRandomCached || string.IsNullOrWhiteSpace(saveFileCurrent))
+            if (!connectRandomCached)
                 return true;
+
+            // If creating a new save file, use the network server name as the team name
+            if (string.IsNullOrWhiteSpace(currentSaveFileName))
+            {
+                if (!string.IsNullOrWhiteSpace(DataDirector.instance.networkServerName))
+                    StatsManager.instance.teamName = DataDirector.instance.networkServerName;
+                return true;
+            }
             
-            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + saveFileCurrent);
-            SemiFunc.SaveFileLoad(saveFileCurrent);
+            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + currentSaveFileName);
+            SemiFunc.SaveFileLoad(currentSaveFileName);
+            
             return false;
         }
         

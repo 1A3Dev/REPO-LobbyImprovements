@@ -1,8 +1,23 @@
+# 1.0.8
+
+### CHANGES
+
+- Creating a save file for a public lobby will now use the server name as the default save file name
+- Loading a save file for a public lobby will now use the save file name as the default server name
+
+### FIXES
+
+- Fixed loading a save file in a public lobby using the previous save file instead of the selected one
+
 # 1.0.7
 
 ### NEW
 
 - Added steam rich presence grouping
+
+### CHANGES
+
+- Made public lobby save files enabled by default
 
 ### FIXES
 

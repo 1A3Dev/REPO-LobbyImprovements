@@ -12,7 +12,7 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class ChatCommands
     {
-        private static string defaultTeamName;
+        internal static string defaultTeamName;
 
         private static bool ExecuteCommand(string _command)
         {
