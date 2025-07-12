@@ -1,3 +1,9 @@
+# 1.0.9
+
+### FIXES
+
+- Fixed being unable to spawn enemy and surplus valuables in multiplayer
+
 # 1.0.8
 
 ### CHANGES

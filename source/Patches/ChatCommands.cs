@@ -198,10 +198,15 @@ namespace LobbyImprovements.Patches
                     if (SemiFunc.IsMasterClientOrSingleplayer())
                     {
                         string itemName = string.Join(' ', commandArgs).ToLower();
-                        List<ValuableObject> items = Resources.FindObjectsOfTypeAll<ValuableObject>()
-                            .Where(x => x)
+                        List<ValuableObject> items = Resources.FindObjectsOfTypeAll<Level>()
+                            .SelectMany(l => l.ValuablePresets
+                                .SelectMany(p => p.tiny.Concat(p.small).Concat(p.medium).Concat(p.big).Concat(p.wide).Concat(p.tall).Concat(p.veryTall))
+                                .Select(x => x.GetComponent<ValuableObject>())
+                                .Where(x => x)
+                            )
+                            .Concat(Resources.FindObjectsOfTypeAll<ValuableObject>().Where(x => x.name.StartsWith("Enemy Valuable") || x.name.StartsWith("Surplus Valuable")))
                             .ToList();
-                        ValuableObject itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower() == itemName);
+                        ValuableObject itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "^Valuable ", "").ToLower() == itemName);
                         if (itemToSpawn != null)
                         {
                             LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
@@ -209,18 +214,22 @@ namespace LobbyImprovements.Patches
 
                             string itemPath = itemToSpawn.volumeType switch
                             {
-                                ValuableVolume.Type.Tiny => ValuableDirector.instance.tinyPath,
-                                ValuableVolume.Type.Small => ValuableDirector.instance.smallPath,
-                                ValuableVolume.Type.Medium => ValuableDirector.instance.mediumPath,
-                                ValuableVolume.Type.Big => ValuableDirector.instance.bigPath,
-                                ValuableVolume.Type.Wide => ValuableDirector.instance.widePath,
-                                ValuableVolume.Type.Tall => ValuableDirector.instance.tallPath,
-                                ValuableVolume.Type.VeryTall => ValuableDirector.instance.veryTallPath,
+                                ValuableVolume.Type.Tiny => ValuableDirector.instance.tinyPath+"/",
+                                ValuableVolume.Type.Small => ValuableDirector.instance.smallPath+"/",
+                                ValuableVolume.Type.Medium => ValuableDirector.instance.mediumPath+"/",
+                                ValuableVolume.Type.Big => ValuableDirector.instance.bigPath+"/",
+                                ValuableVolume.Type.Wide => ValuableDirector.instance.widePath+"/",
+                                ValuableVolume.Type.Tall => ValuableDirector.instance.tallPath+"/",
+                                ValuableVolume.Type.VeryTall => ValuableDirector.instance.veryTallPath+"/",
                                 _ => ""
                             };
+                            if (itemToSpawn.name.StartsWith("Enemy Valuable") || itemToSpawn.name.StartsWith("Surplus Valuable"))
+                            {
+                                itemPath = "";
+                            }
 
                             GameObject _valuable = GameManager.instance.gameMode != 0
-                                ? PhotonNetwork.InstantiateRoomObject($"{ValuableDirector.instance.resourcePath}{itemPath}/{itemToSpawn.name}", position, levelPoint.transform.rotation)
+                                ? PhotonNetwork.InstantiateRoomObject($"{ValuableDirector.instance.resourcePath}{itemPath}{itemToSpawn.name}", position, levelPoint.transform.rotation)
                                 : Object.Instantiate(itemToSpawn.gameObject, position, levelPoint.transform.rotation);
                             ValuableObject component = _valuable.GetComponent<ValuableObject>();
                             component.DollarValueSetLogic();
