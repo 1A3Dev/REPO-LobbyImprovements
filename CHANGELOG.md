@@ -1,3 +1,9 @@
+# 1.1.0-PRE
+
+### FIXES
+
+- Fixed chat commands using the closest level point to any player instead of the closest level point to the local player
+
 # 1.0.9
 
 ### FIXES

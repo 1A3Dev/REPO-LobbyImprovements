@@ -13,7 +13,40 @@ namespace LobbyImprovements.Patches
     public class ChatCommands
     {
         internal static string defaultTeamName;
+        
+        public static LevelPoint LevelPointsGetClosestToLocalPlayer()
+        {
+            PlayerAvatar playerAvatar;
+            if (SemiFunc.IsSpectating() && SpectateCamera.instance.player)
+            {
+                playerAvatar = SpectateCamera.instance.player;
+            }
+            else
+            {
+                playerAvatar = PlayerAvatar.instance;
+            }
 
+            if (playerAvatar != null)
+            {
+                List<LevelPoint> list2 = SemiFunc.LevelPointsGetAll();
+                float num = 999f;
+                LevelPoint levelPoint = null;
+                Vector3 position = playerAvatar.transform.position;
+                foreach (LevelPoint levelPoint2 in list2)
+                {
+                    float num2 = Vector3.Distance(position, levelPoint2.transform.position);
+                    if (num2 < num)
+                    {
+                        num = num2;
+                        levelPoint = levelPoint2;
+                    }
+                }
+                return levelPoint;
+            }
+
+            return SemiFunc.LevelPointsGetClosestToPlayer();
+        }
+        
         private static bool ExecuteCommand(string _command)
         {
             string[] args = _command.Split(' ');
@@ -39,7 +72,7 @@ namespace LobbyImprovements.Patches
                             EnemyDirector.instance.debugNoSpawnIdlePause = true;
                             EnemyDirector.instance.debugEnemyEnableTime = 999f;
                             EnemyDirector.instance.debugEnemyDisableTime = 3f;
-                            LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
+                            LevelPoint levelPoint = LevelPointsGetClosestToLocalPlayer();
                             // LevelGenerator.Instance.EnemySpawn(enemySetup, levelPoint.transform.position);
                             foreach (GameObject spawnObject in enemySetup.spawnObjects)
                             {
@@ -72,7 +105,7 @@ namespace LobbyImprovements.Patches
                         Item itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "^Item ", "").ToLower() == itemName);
                         if (itemToSpawn != null)
                         {
-                            LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
+                            LevelPoint levelPoint = LevelPointsGetClosestToLocalPlayer();
                             Vector3 position = new Vector3(levelPoint.transform.position.x, levelPoint.transform.position.y + 1f, levelPoint.transform.position.z);
                             GameObject gameObject = GameManager.instance.gameMode != 0
                                 ? PhotonNetwork.InstantiateRoomObject($"Items/{itemToSpawn.prefab.name}", position, levelPoint.transform.rotation)
@@ -209,7 +242,7 @@ namespace LobbyImprovements.Patches
                         ValuableObject itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "^Valuable ", "").ToLower() == itemName);
                         if (itemToSpawn != null)
                         {
-                            LevelPoint levelPoint = SemiFunc.LevelPointsGetClosestToPlayer();
+                            LevelPoint levelPoint = LevelPointsGetClosestToLocalPlayer();
                             Vector3 position = new Vector3(levelPoint.transform.position.x, levelPoint.transform.position.y + 1f, levelPoint.transform.position.z);
 
                             string itemPath = itemToSpawn.volumeType switch
