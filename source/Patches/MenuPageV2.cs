@@ -57,8 +57,27 @@ namespace LobbyImprovements.Patches
             if (!mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
+            MenuManager.instance.PageOpen(MenuPageIndex.PublicGameChoice);
             return false;
+        }
+        
+        [HarmonyPatch(typeof(MenuManager), "PageOpen")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void MenuManager_PageOpen(MenuManager __instance, MenuPage __result, MenuPageIndex menuPageIndex, bool addedPageOnTop = false)
+        {
+            if (!mainMenuOverhaul) return;
+
+            if (menuPageIndex == MenuPageIndex.PublicGameChoice)
+            {
+                TextMeshProUGUI menuPageHeader = __result.transform.Find("Header/Text (TMP)")?.GetComponent<TextMeshProUGUI>();
+                if (menuPageHeader)
+                {
+                    menuPageHeader.text = "Join Game";
+                    __result.StartCoroutine(GetRegionsForSavesMenu());
+                }
+            }
+            AddRegionSliders(false);
         }
         
         private static REPOSlider regionSlider;
@@ -97,18 +116,22 @@ namespace LobbyImprovements.Patches
         }
         private static void LoadRegions(Transform parent, Vector2 localPosition, bool showPing)
         {
-            regionMap.Clear();
-        
-            List<string> options = new List<string>();
-            if (PhotonNetwork.NetworkingClient?.RegionHandler?.EnabledRegions != null)
+            List<Region> enabledRegions = PhotonNetwork.NetworkingClient?.RegionHandler?.EnabledRegions;
+            if (enabledRegions != null)
             {
-                foreach (Region region in PhotonNetwork.NetworkingClient.RegionHandler.EnabledRegions)
+                regionMap.Clear();
+                foreach (Region region in enabledRegions)
                 {
-                    string displayName = GetRegionDisplayName(region.Code);
-                    regionMap.Add(displayName, region);
-                    string ping = region.Ping > 200 || region.Ping == RegionPinger.PingWhenFailed ? ">200" : region.Ping.ToString();
-                    options.Add(showPing ? $"{displayName} [{ping}ms]" : displayName);
+                    regionMap.Add(GetRegionDisplayName(region.Code), region);
                 }
+            }
+            
+            List<string> options = new List<string>();
+            foreach (Region region in regionMap.Values)
+            {
+                string displayName = GetRegionDisplayName(region.Code);
+                string ping = region.Ping > 200 || region.Ping == RegionPinger.PingWhenFailed ? ">200" : region.Ping.ToString();
+                options.Add(showPing ? $"{displayName} [{ping}ms]" : displayName);
             }
 
             if (regionSlider)
@@ -176,18 +199,7 @@ namespace LobbyImprovements.Patches
         private static void OnRegionListReceived()
         {
             if (!mainMenuOverhaul) return;
-            
-            MenuPageServerList menuPageServerList = MenuManager.instance.currentMenuPage.GetComponent<MenuPageServerList>();
-            if (menuPageServerList)
-            {
-                LoadRegions(menuPageServerList.transform.Find("Panel"), new Vector2(-170, -195), false);
-            }
-            
-            MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage.GetComponent<MenuPageSaves>();
-            if (menuPageSaves && MainMenuOpen.instance?.mainMenuGameModeState == MainMenuOpen.MainMenuGameModeState.MultiPlayer)
-            {
-                LoadRegions(menuPageSaves.transform, new Vector2(400, 328), false);
-            }
+            AddRegionSliders(false);
         }
         
         [HarmonyPatch(typeof(ConnectionCallbacksContainer), "OnConnectedToMaster")]
@@ -196,14 +208,24 @@ namespace LobbyImprovements.Patches
         private static void OnConnectedToMaster()
         {
             if (!mainMenuOverhaul) return;
-            
-            MenuPageServerList menuPageServerList = MenuManager.instance.currentMenuPage.GetComponent<MenuPageServerList>();
-            if (menuPageServerList)
+            AddRegionSliders(true);
+        }
+
+        private static void AddRegionSliders(bool showPing)
+        {
+            MenuPagePublicGameChoice menuPagePublicChoice = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPagePublicGameChoice>();
+            if (menuPagePublicChoice)
             {
-                LoadRegions(menuPageServerList.transform.Find("Panel"), new Vector2(-170, -195), true);
+                LoadRegions(menuPagePublicChoice.transform, new Vector2(190, 10), showPing);
             }
             
-            MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage.GetComponent<MenuPageSaves>();
+            MenuPageServerList menuPageServerList = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPageServerList>();
+            if (menuPageServerList)
+            {
+                LoadRegions(menuPageServerList.transform.Find("Panel"), new Vector2(-170, -195), showPing);
+            }
+            
+            MenuPageSaves menuPageSaves = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPageSaves>();
             if (menuPageSaves && MainMenuOpen.instance?.mainMenuGameModeState == MainMenuOpen.MainMenuGameModeState.MultiPlayer)
             {
                 Transform backButtonObj = menuPageSaves.gameObject.transform.Find("Menu Button - < GO BACK");
@@ -226,12 +248,12 @@ namespace LobbyImprovements.Patches
             RunManager.instance.lobbyJoin = true;
             return false;
         }
-        
-        // Server List > Main Menu
-        [HarmonyPatch(typeof(MenuPageServerList), "ExitPage")]
+
+        // Public Game Choice > Main Menu
+        [HarmonyPatch(typeof(MenuPagePublicGameChoice), "ExitPage")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static bool MenuPageSaves_OnGoBack(MenuPageSaves __instance)
+        private static bool MenuPagePublicGameChoice_ExitPage(MenuPagePublicGameChoice __instance)
         {
             if (!mainMenuOverhaul) return true;
             
@@ -239,7 +261,7 @@ namespace LobbyImprovements.Patches
             MenuManager.instance.PageOpen(MenuPageIndex.Main);
             return false;
         }
-
+        
         [HarmonyPatch(typeof(MenuPageTwoOptions), "Update")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
