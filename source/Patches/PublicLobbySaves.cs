@@ -1,6 +1,6 @@
 using HarmonyLib;
 using Steamworks;
-using UnityEngine;
+using UnityEngine.Events;
 
 namespace LobbyImprovements.Patches
 {
@@ -16,7 +16,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value)
+            if (!PluginLoader.savePublicEnabled.Value || MenuPageV2.mainMenuOverhaul)
                 return true;
 
             SemiFunc.MainMenuSetMultiplayer();
@@ -33,7 +33,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void MenuPageSaves_Start(MenuPageSaves __instance)
         {
-            if (SemiFunc.MainMenuIsMultiplayer())
+            if (SemiFunc.MainMenuIsMultiplayer() && !MenuPageV2.mainMenuOverhaul)
             {
                 __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
             }
@@ -45,21 +45,62 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuButton_OnSelect(MenuButton __instance)
         {
-            if (!publicSavesMenuOpen || !__instance.menuButtonPopUp)
-                return true;
-
-            if (__instance.menuButtonPopUp.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
+            if (__instance.menuButtonPopUp?.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
             {
-                MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
-                menuPageSaves?.OnNewGame();
-                return !menuPageSaves;
+                if (MenuPageV2.mainMenuOverhaul)
+                {
+                    __instance.menuButtonPopUp.option1Text = "Private";
+                    __instance.menuButtonPopUp.option1Event = new UnityEvent();
+                    __instance.menuButtonPopUp.option1Event.AddListener(() =>
+                    {
+                        publicSavesMenuOpen = false;
+                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                        menuPageSaves?.OnNewGame();
+                    });
+                    __instance.menuButtonPopUp.option2Text = "Public";
+                    __instance.menuButtonPopUp.option2Event = new UnityEvent();
+                    __instance.menuButtonPopUp.option2Event.AddListener(() =>
+                    {
+                        publicSavesMenuOpen = true;
+                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                        menuPageSaves?.OnNewGame();
+                    });
+                }
+                else if (publicSavesMenuOpen)
+                {
+                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>();
+                    menuPageSaves?.OnNewGame();
+                    return false;
+                }
             }
 
-            if (__instance.menuButtonPopUp.headerText == "Load save?" && __instance.menuButtonPopUp.bodyText == "Load this save file?")
+            if (__instance.menuButtonPopUp?.headerText == "Load save?" && __instance.menuButtonPopUp?.bodyText == "Load this save file?")
             {
-                MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
-                menuPageSaves?.OnLoadGame();
-                return !menuPageSaves;
+                if (MenuPageV2.mainMenuOverhaul)
+                {
+                    __instance.menuButtonPopUp.option1Text = "Private";
+                    __instance.menuButtonPopUp.option1Event = new UnityEvent();
+                    __instance.menuButtonPopUp.option1Event.AddListener(() =>
+                    {
+                        publicSavesMenuOpen = false;
+                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                        menuPageSaves?.OnLoadGame();
+                    });
+                    __instance.menuButtonPopUp.option2Text = "Public";
+                    __instance.menuButtonPopUp.option2Event = new UnityEvent();
+                    __instance.menuButtonPopUp.option2Event.AddListener(() =>
+                    {
+                        publicSavesMenuOpen = true;
+                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                        menuPageSaves?.OnLoadGame();
+                    });
+                }
+                else if (publicSavesMenuOpen)
+                {
+                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>();
+                    menuPageSaves?.OnLoadGame();
+                    return false;
+                }
             }
 
             return true;
@@ -116,11 +157,11 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
         {
-            if (!publicSavesMenuOpen)
+            if (!publicSavesMenuOpen && !MenuPageV2.mainMenuOverhaul)
                 return true;
             
-            MenuManager.instance.PageCloseAllExcept(MenuPageIndex.Saves);
-            MenuManager.instance.PageSetCurrent(MenuPageIndex.Saves, __instance.menuPageParent);
+            MenuManager.instance.PageCloseAll();
+            MenuManager.instance.PageOpen(MenuPageIndex.Saves);
             return false;
         }
         
