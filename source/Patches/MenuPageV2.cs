@@ -173,7 +173,7 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(ConnectionCallbacksContainer), "OnRegionListReceived")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void MenuPageServerList_OnRegionListReceived()
+        private static void OnRegionListReceived()
         {
             if (!mainMenuOverhaul) return;
             
@@ -193,7 +193,7 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(ConnectionCallbacksContainer), "OnConnectedToMaster")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void MenuPageServerList_OnConnectedToMaster()
+        private static void OnConnectedToMaster()
         {
             if (!mainMenuOverhaul) return;
             
