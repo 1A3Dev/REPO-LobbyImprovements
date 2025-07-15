@@ -10,6 +10,7 @@ using UnityEngine;
 namespace LobbyImprovements
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.SoftDependency)]
     internal class PluginLoader : BaseUnityPlugin
     {
         private readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
