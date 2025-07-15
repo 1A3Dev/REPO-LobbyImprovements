@@ -33,6 +33,8 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
         
+        internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
+        
         private void Awake()
         {
             if (initialized) return;
@@ -132,7 +134,20 @@ namespace LobbyImprovements
             {
                 StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
-            
+
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
+            {
+                mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
+                try
+                {
+                    harmony.PatchAll(typeof(MenuPageV2));
+                }
+                catch (Exception e)
+                {
+                    StaticLogger.LogError("MenuPageV2 Patch Failed: " + e);
+                }
+            }
+
             StaticLogger.LogInfo("Patches Loaded");
         }
 
