@@ -166,20 +166,36 @@ namespace LobbyImprovements.Patches
             }
         }
         
+        private static bool prefixRequestFailed;
+        
+        [HarmonyPatch(typeof(MainMenuOpen), "Start")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void MainMenuOpen_Start(MainMenuOpen __instance)
+        {
+            if (prefixSingleRequest)
+            {
+                if (SteamClient.IsValid)
+                    __instance.StartCoroutine(GetPlayerNamePrefixes([], "MainMenuOpen_Start"));
+                else
+                    prefixRequestFailed = true;
+                return;
+            }
+            if (!SteamClient.IsValid) return;
+            string[] steamIds = [SteamClient.SteamId.ToString()];
+            if (steamIds.Length > 0)
+                __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "MainMenuOpen_Start"));
+        }
+        
         [HarmonyPatch(typeof(SteamManager), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         internal static void SteamManager_Awake(SteamManager __instance)
         {
-            if (prefixSingleRequest)
+            if (prefixSingleRequest && SteamClient.IsValid && prefixRequestFailed)
             {
+                prefixRequestFailed = false;
                 __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
-            }
-            else
-            {
-                string[] steamIds = [SteamClient.SteamId.ToString()];
-                if (steamIds.Length > 0)
-                    __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
             }
         }
         
@@ -192,7 +208,6 @@ namespace LobbyImprovements.Patches
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
             
             if (prefixSingleRequest) return;
-            
             string[] steamIds = _lobby.Members.Select(x => x.Id.ToString())
                 .Where(x => x != SteamClient.SteamId.ToString()).ToArray();
             if (steamIds.Length > 0)
@@ -207,7 +222,6 @@ namespace LobbyImprovements.Patches
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
             
             if (prefixSingleRequest) return;
-            
             string[] steamIds = [_friend.Id.ToString()];
             if (steamIds.Length > 0)
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));

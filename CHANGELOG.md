@@ -3,6 +3,7 @@
 ### FIXES
 
 - Fixed chat commands using the closest level point to any player instead of the closest level point to the local player
+- Fixed name prefixes being re-fetched when joining a lobby
 
 # 1.0.9
 
