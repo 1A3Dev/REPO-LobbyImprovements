@@ -147,6 +147,9 @@ namespace LobbyImprovements
                 {
                     StaticLogger.LogError("MenuPageV2 Patch Failed: " + e);
                 }
+#if DEBUG
+                MenuPageV2.mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
+#endif
             }
 
             StaticLogger.LogInfo("Patches Loaded");

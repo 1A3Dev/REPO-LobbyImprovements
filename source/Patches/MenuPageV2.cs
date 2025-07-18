@@ -32,6 +32,8 @@ namespace LobbyImprovements.Patches
 
             TextMeshProUGUI publicGameText = __instance.rectTransform.transform.Find("Menu Button - Public Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
             if (publicGameText) publicGameText.text = "Join Game";
+            
+            regionMap.Clear();
         }
         
         // Main Menu > Saves Menu (Skip region menu)
@@ -48,7 +50,7 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Main Menu > Server List (Skip region and public game choice menus)
+        // Main Menu > Server List (Skip region menu)
         [HarmonyPatch(typeof(MenuPageMain), "ButtonEventPlayRandom")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -74,7 +76,7 @@ namespace LobbyImprovements.Patches
                 if (menuPageHeader)
                 {
                     menuPageHeader.text = "Join Game";
-                    __result.StartCoroutine(GetRegionsForSavesMenu());
+                    __instance.StartCoroutine(GetRegionsForOtherMenus());
                 }
             }
             AddRegionSliders(false);
@@ -143,10 +145,11 @@ namespace LobbyImprovements.Patches
             regionSlider.transform.Find("SliderBG").gameObject.SetActive(false);
         }
 
+        // [Server List] Random Matchmaking & Refresh Buttons
         private static void RefreshLobbies()
         {
             MenuPageServerList menuPageServerList = MenuManager.instance.currentMenuPage.GetComponent<MenuPageServerList>();
-            if (!menuPageServerList || !menuPageServerList.receivedList) return;
+            if (!menuPageServerList || !menuPageServerList.receivedList || menuPageServerList.searchInProgress) return;
             
             foreach (Transform item2 in menuPageServerList.serverElementParent)
             {
@@ -160,8 +163,7 @@ namespace LobbyImprovements.Patches
             menuPageServerList.buttonPrevious.HideSetInstant();
             menuPageServerList.StartCoroutine(menuPageServerList.GetServerList());
         }
-
-        // [Server List] Random Matchmaking
+        
         [HarmonyPatch(typeof(MenuPageServerList), "Start")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
@@ -207,12 +209,20 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void OnConnectedToMaster()
         {
+            if (fetchingRegions && MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList)
+                PhotonNetwork.Disconnect();
+            
+            fetchingRegions = false;
+            
             if (!mainMenuOverhaul) return;
             AddRegionSliders(true);
         }
 
         private static void AddRegionSliders(bool showPing)
         {
+            if (regionMap.Count > 0)
+                showPing = true;
+            
             MenuPagePublicGameChoice menuPagePublicChoice = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPagePublicGameChoice>();
             if (menuPagePublicChoice)
             {
@@ -285,33 +295,44 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
+        private static bool fetchingRegions;
         [HarmonyPatch(typeof(MenuPageSaves), "Start")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void MenuPageSaves_Start(MenuPageSaves __instance)
         {
             if (!mainMenuOverhaul || !SemiFunc.MainMenuIsMultiplayer()) return;
-            __instance.StartCoroutine(GetRegionsForSavesMenu());
+            MenuManager.instance.StartCoroutine(GetRegionsForOtherMenus());
         }
 
-        private static IEnumerator GetRegionsForSavesMenu()
+        private static IEnumerator GetRegionsForOtherMenus()
         {
+            if (fetchingRegions)
+            {
+                PluginLoader.StaticLogger.LogInfo("[Public Lobby] Already fetching regions");
+                yield break;
+            }
+            if (regionMap.Count > 0)
+            {
+                yield break;
+            }
+            
+            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Started fetching regions");
+            fetchingRegions = true;
             PhotonNetwork.Disconnect();
-            while (PhotonNetwork.NetworkingClient.State != ClientState.Disconnected && PhotonNetwork.NetworkingClient.State != 0)
+            while (MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList && PhotonNetwork.NetworkingClient.State != ClientState.Disconnected && PhotonNetwork.NetworkingClient.State != 0)
             {
                 yield return null;
             }
-            SteamManager.instance.SendSteamAuthTicket();
-            DataDirector.instance.PhotonSetRegion();
-            DataDirector.instance.PhotonSetVersion();
-            DataDirector.instance.PhotonSetAppId();
-            ServerSettings.ResetBestRegionCodeInPreferences();
-            PhotonNetwork.ConnectUsingSettings();
-            while (PhotonNetwork.NetworkingClient.State != ClientState.ConnectedToMasterServer)
+            if (MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList)
             {
-                yield return null;
+                SteamManager.instance.SendSteamAuthTicket();
+                DataDirector.instance.PhotonSetRegion();
+                DataDirector.instance.PhotonSetVersion();
+                DataDirector.instance.PhotonSetAppId();
+                ServerSettings.ResetBestRegionCodeInPreferences();
+                PhotonNetwork.ConnectUsingSettings();
             }
-            PhotonNetwork.Disconnect();
         }
     }
 }
