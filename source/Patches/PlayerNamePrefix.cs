@@ -18,13 +18,15 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PlayerNamePrefix
     {
-        private static bool prefixSingleRequest = true; // Should prefixes for all players only be requested once at game start (if false it will request the needed players on lobby join)
+        private static bool prefixSingleRequest = false; // Should prefixes for all players only be requested once at game start (if false it will request the needed players on lobby join)
         private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json"; // URL to fetch the allowed prefixes from
         
         private static Dictionary<string, List<string>> playerPrefixData = new Dictionary<string, List<string>>();
         private static IEnumerator GetPlayerNamePrefixes(string[] steamIds, string logType)
         {
             steamIds = steamIds.Where(x => Regex.IsMatch(x, "^76[0-9]{15}$")).OrderBy(x => x).ToArray();
+            bool includesLocalPlayer = steamIds.Contains(SteamClient.SteamId.ToString());
+            
             string url = $"{playerPrefixUrl}";
             if (steamIds.Length > 0)
             {
@@ -32,49 +34,56 @@ namespace LobbyImprovements.Patches
             }
             UnityWebRequest www = UnityWebRequest.Get(url);
             yield return www.SendWebRequest();
-            bool includesLocalPlayer = steamIds.Contains(SteamClient.SteamId.ToString());
+            
             AcceptableValueList<string> acceptableValueList = null;
             if (www.result == UnityWebRequest.Result.Success)
             {
                 try
                 {
                     Dictionary<string, List<string>> newPlayerPrefixData = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(www.downloadHandler.text);
-                    PluginLoader.StaticLogger.LogInfo($"[GetPlayerNamePrefixes | {logType}] Successfully found prefixes for {newPlayerPrefixData.Count} players");
                     if (steamIds.Length > 0)
                     {
-                        foreach (KeyValuePair<string, List<string>> entry in newPlayerPrefixData)
+                        foreach (string steamId in steamIds)
                         {
-                            playerPrefixData[entry.Key] = entry.Value;
-                            // PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {entry.Key} has {entry.Value.Count} prefixes: {string.Join(", ", entry.Value)}");
+                            if (newPlayerPrefixData.TryGetValue(steamId, out List<string> prefixes))
+                            {
+                                playerPrefixData[steamId] = prefixes;
+                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {steamId} has {prefixes.Count} prefixes: {string.Join(", ", prefixes)}");
+                            }
+                            else
+                            {
+                                playerPrefixData.Remove(steamId);
+                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {steamId} has 0 prefixes");
+                            }
                         }
                     }
                     else
                     {
+                        if (newPlayerPrefixData.ContainsKey(SteamClient.SteamId.ToString()))
+                            includesLocalPlayer = true;
+                        
                         playerPrefixData = newPlayerPrefixData;
-                    }
 
-                    // Update the config with the latest prefixes
-                    if (!includesLocalPlayer && newPlayerPrefixData.ContainsKey(SteamClient.SteamId.ToString()))
-                        includesLocalPlayer = true;
+                        foreach (KeyValuePair<string, List<string>> entry in newPlayerPrefixData)
+                        {
+                            PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {entry.Key} has {entry.Value.Count} prefixes: {string.Join(", ", entry.Value)}");
+                        }
+                    }
                     
                     if (includesLocalPlayer)
                     {
                         List<string> prefixes = GetPrefixDataForSteamId(SteamClient.SteamId.ToString());
-                        if (prefixes.Count > 0)
-                        {
-                            PluginLoader.StaticLogger.LogInfo($"[GetPlayerNamePrefixes | {logType}] {SteamClient.SteamId} has {prefixes.Count} prefixes: {string.Join(", ", prefixes)}");
-                        }
                         acceptableValueList = new AcceptableValueList<string>(prefixes.Prepend("none").ToArray());
                     }
                 }
                 catch (JsonException e)
                 {
-                    PluginLoader.StaticLogger.LogError($"[GetPlayerNamePrefixes | {logType}] Failed to parse prefixes: " + e.Message);
+                    PluginLoader.StaticLogger.LogWarning($"[GetPlayerNamePrefixes | {logType}] Failed to parse prefixes: " + e.Message);
                 }
             }
             else
             {
-                PluginLoader.StaticLogger.LogError($"[GetPlayerNamePrefixes | {logType}] Failed to fetch prefixes: " + www.error);
+                PluginLoader.StaticLogger.LogWarning($"[GetPlayerNamePrefixes | {logType}] Failed to fetch prefixes: " + www.error);
             }
 
             if (includesLocalPlayer)
@@ -208,8 +217,7 @@ namespace LobbyImprovements.Patches
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
             
             if (prefixSingleRequest) return;
-            string[] steamIds = _lobby.Members.Select(x => x.Id.ToString())
-                .Where(x => x != SteamClient.SteamId.ToString()).ToArray();
+            string[] steamIds = _lobby.Members.Select(x => x.Id.ToString()).Where(x => x != SteamClient.SteamId.ToString()).ToArray();
             if (steamIds.Length > 0)
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
         }
@@ -227,6 +235,34 @@ namespace LobbyImprovements.Patches
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));
         }
         
+        [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberLeft")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void SteamManager_OnLobbyMemberLeft(Lobby _lobby, Friend _friend)
+        {
+            SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
+            
+            if (!prefixSingleRequest && playerPrefixData.ContainsKey(_friend.Id.ToString()))
+            {
+                PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_OnLobbyMemberLeft] Removing 1 player ({_friend.Id})");
+                playerPrefixData.Remove(_friend.Id.ToString());
+            }
+        }
+        
+        [HarmonyPatch(typeof(SteamManager), "LeaveLobby")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        internal static void SteamManager_LeaveLobby()
+        {
+            SteamFriends.ClearRichPresence();
+            
+            if (prefixSingleRequest) return;
+            Dictionary<string, List<string>> newPlayerPrefixData = playerPrefixData.Where(x => x.Key == SteamClient.SteamId.ToString()).ToDictionary(x => x.Key, x => x.Value);
+            if (playerPrefixData.Count <= newPlayerPrefixData.Count) return;
+            PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_LeaveLobby] Removing {playerPrefixData.Count - newPlayerPrefixData.Count} players");
+            playerPrefixData = newPlayerPrefixData;
+        }
+
         [HarmonyPatch(typeof(PlayerAvatar), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
@@ -321,23 +357,6 @@ namespace LobbyImprovements.Patches
                     break;
                 }
             }
-        }
-        
-        // Steam Rich Presence
-        [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberLeft")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        internal static void SteamManager_OnLobbyMemberLeft(Lobby _lobby, Friend _friend)
-        {
-            SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
-        }
-        
-        [HarmonyPatch(typeof(SteamManager), "LeaveLobby")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        internal static void SteamManager_LeaveLobby()
-        {
-            SteamFriends.ClearRichPresence();
         }
     }
 }
