@@ -237,7 +237,7 @@ namespace LobbyImprovements.Patches
                                 .Select(x => x.GetComponent<ValuableObject>())
                                 .Where(x => x)
                             )
-                            .Concat(Resources.FindObjectsOfTypeAll<ValuableObject>().Where(x => x.name.StartsWith("Enemy Valuable") || x.name.StartsWith("Surplus Valuable")))
+                            .Concat(Resources.FindObjectsOfTypeAll<ValuableObject>().Where(x => x.name.StartsWith("Enemy Valuable - ") || x.name.StartsWith("Surplus Valuable - ")))
                             .ToList();
                         ValuableObject itemToSpawn = items.FirstOrDefault(x => Regex.Replace(x.name, "^Valuable ", "").ToLower() == itemName);
                         if (itemToSpawn != null)
@@ -256,7 +256,7 @@ namespace LobbyImprovements.Patches
                                 ValuableVolume.Type.VeryTall => ValuableDirector.instance.veryTallPath+"/",
                                 _ => ""
                             };
-                            if (itemToSpawn.name.StartsWith("Enemy Valuable") || itemToSpawn.name.StartsWith("Surplus Valuable"))
+                            if (itemToSpawn.name.StartsWith("Enemy Valuable - ") || itemToSpawn.name.StartsWith("Surplus Valuable - "))
                             {
                                 itemPath = "";
                             }
@@ -272,6 +272,55 @@ namespace LobbyImprovements.Patches
                         }
 
                         PluginLoader.StaticLogger.LogInfo($"Available Valuables: {string.Join(", ", items.Select(x => Regex.Replace(x.name, "( |^)Valuable( |$)", "", RegexOptions.IgnoreCase).ToLower()).OrderBy(x => x))}");
+                    }
+                    break;
+                case "/ss":
+                    if (SemiFunc.IsMasterClientOrSingleplayer() && SemiFunc.RunIsRecording())
+                    {
+                        if (!ObjectScreenshotTaker.instance)
+                        {
+                            GameObject screenshotTakerObj = new GameObject("ObjectScreenshotTaker");
+                            screenshotTakerObj.hideFlags = HideFlags.HideAndDontSave;
+                            screenshotTakerObj.AddComponent<ObjectScreenshotTaker>();
+                        }
+                        
+                        string ssType = string.Join(' ', commandArgs).ToLower();
+                        if (ssType == "enemies")
+                        {
+                            if (!ObjectScreenshotTaker.instance.isTakingScreenshots)
+                            {
+                                ObjectScreenshotTaker.instance.StartCoroutine(ObjectScreenshotTaker.instance.TakeScreenshotsOfEnemies());
+                                PlayerAvatar.instance.ChatMessageSpeak("Starting Enemy Screenshots", PlayerAvatar.instance.isCrouching);
+                                return true;
+                            }
+                        }
+                        else if (ssType == "items")
+                        {
+                            if (!ObjectScreenshotTaker.instance.isTakingScreenshots)
+                            {
+                                ObjectScreenshotTaker.instance.StartCoroutine(ObjectScreenshotTaker.instance.TakeScreenshotsOfItems());
+                                PlayerAvatar.instance.ChatMessageSpeak("Starting Item Screenshots", PlayerAvatar.instance.isCrouching);
+                                return true;
+                            }
+                        }
+                        else if (ssType == "modules")
+                        {
+                            if (!ObjectScreenshotTaker.instance.isTakingScreenshots)
+                            {
+                                ObjectScreenshotTaker.instance.StartCoroutine(ObjectScreenshotTaker.instance.TakeScreenshotsOfModules());
+                                PlayerAvatar.instance.ChatMessageSpeak("Starting Module Screenshots", PlayerAvatar.instance.isCrouching);
+                                return true;
+                            }
+                        }
+                        else if (ssType == "valuables")
+                        {
+                            if (!ObjectScreenshotTaker.instance.isTakingScreenshots)
+                            {
+                                ObjectScreenshotTaker.instance.StartCoroutine(ObjectScreenshotTaker.instance.TakeScreenshotsOfValuables());
+                                PlayerAvatar.instance.ChatMessageSpeak("Starting Valuable Screenshots", PlayerAvatar.instance.isCrouching);
+                                return true;
+                            }
+                        }
                     }
                     break;
             }
