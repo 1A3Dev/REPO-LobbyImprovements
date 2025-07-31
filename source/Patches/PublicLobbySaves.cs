@@ -1,6 +1,7 @@
 using HarmonyLib;
+using MenuLib;
 using Steamworks;
-using UnityEngine.Events;
+using UnityEngine;
 
 namespace LobbyImprovements.Patches
 {
@@ -49,24 +50,40 @@ namespace LobbyImprovements.Patches
             {
                 if (MenuPageV2.mainMenuOverhaul)
                 {
-                    __instance.menuButtonPopUp.option1Text = "Private";
-                    __instance.menuButtonPopUp.option1Event = new UnityEvent();
-                    __instance.menuButtonPopUp.option1Event.AddListener(() =>
+                    var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
+                    repoPage.AddElementToScrollView(scrollView =>
                     {
-                        publicSavesMenuOpen = false;
-                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                        menuPageSaves?.OnNewGame();
+                        var repoButton = MenuAPI.CreateREPOButton("Private", () =>
+                        {
+                            publicSavesMenuOpen = false;
+                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                            menuPageSaves?.OnNewGame();
+                        }, parent: scrollView, localPosition: Vector2.zero);
+                        return repoButton.rectTransform;
                     });
-                    __instance.menuButtonPopUp.option2Text = "Public";
-                    __instance.menuButtonPopUp.option2Event = new UnityEvent();
-                    __instance.menuButtonPopUp.option2Event.AddListener(() =>
+                    repoPage.AddElementToScrollView(scrollView =>
                     {
-                        publicSavesMenuOpen = true;
-                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                        menuPageSaves?.OnNewGame();
+                        var repoButton = MenuAPI.CreateREPOButton("Public", () =>
+                        {
+                            publicSavesMenuOpen = true;
+                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                            menuPageSaves?.OnNewGame();
+                        }, parent: scrollView, localPosition: Vector2.zero);
+                        return repoButton.rectTransform;
                     });
+                    repoPage.AddElementToScrollView(scrollView =>
+                    {
+                        var repoButton = MenuAPI.CreateREPOButton("Back", () =>
+                        {
+                            repoPage.ClosePage(false);
+                        }, parent: scrollView, localPosition: Vector2.zero);
+                        return repoButton.rectTransform;
+                    });
+                    repoPage.OpenPage(openOnTop: false);
+                    return false;
                 }
-                else if (publicSavesMenuOpen)
+                
+                if (publicSavesMenuOpen)
                 {
                     MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>();
                     menuPageSaves?.OnNewGame();
@@ -78,24 +95,32 @@ namespace LobbyImprovements.Patches
             {
                 if (MenuPageV2.mainMenuOverhaul)
                 {
-                    __instance.menuButtonPopUp.option1Text = "Private";
-                    __instance.menuButtonPopUp.option1Event = new UnityEvent();
-                    __instance.menuButtonPopUp.option1Event.AddListener(() =>
+                    var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
+                    repoPage.AddElementToScrollView(scrollView =>
                     {
-                        publicSavesMenuOpen = false;
-                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                        menuPageSaves?.OnLoadGame();
+                        var repoButton = MenuAPI.CreateREPOButton("Private", () =>
+                        {
+                            publicSavesMenuOpen = false;
+                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                            menuPageSaves?.OnLoadGame();
+                        }, parent: scrollView, localPosition: Vector2.zero);
+                        return repoButton.rectTransform;
                     });
-                    __instance.menuButtonPopUp.option2Text = "Public";
-                    __instance.menuButtonPopUp.option2Event = new UnityEvent();
-                    __instance.menuButtonPopUp.option2Event.AddListener(() =>
+                    repoPage.AddElementToScrollView(scrollView =>
                     {
-                        publicSavesMenuOpen = true;
-                        MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                        menuPageSaves?.OnLoadGame();
+                        var repoButton = MenuAPI.CreateREPOButton("Public", () =>
+                        {
+                            publicSavesMenuOpen = true;
+                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+                            menuPageSaves?.OnLoadGame();
+                        }, parent: scrollView, localPosition: Vector2.zero);
+                        return repoButton.rectTransform;
                     });
+                    repoPage.OpenPage(openOnTop: false);
+                    return false;
                 }
-                else if (publicSavesMenuOpen)
+                
+                if (publicSavesMenuOpen)
                 {
                     MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>();
                     menuPageSaves?.OnLoadGame();
