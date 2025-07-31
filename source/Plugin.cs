@@ -36,6 +36,8 @@ namespace LobbyImprovements
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
         
+        internal static bool mainMenuOverhaul;
+        
         private void Awake()
         {
             if (initialized) return;
@@ -148,7 +150,7 @@ namespace LobbyImprovements
                     StaticLogger.LogError("MenuPageV2 Patch Failed: " + e);
                 }
 #if DEBUG
-                MenuPageV2.mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
+                mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
 #endif
             }
 

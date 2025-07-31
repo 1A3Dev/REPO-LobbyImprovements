@@ -1,14 +1,13 @@
+using System.Runtime.CompilerServices;
 using HarmonyLib;
-using MenuLib;
 using Steamworks;
-using UnityEngine;
 
 namespace LobbyImprovements.Patches
 {
     [HarmonyPatch]
     public class PublicLobbySaves
     {
-        private static bool publicSavesMenuOpen;
+        internal static bool publicSavesMenuOpen;
         private static string currentSaveFileName;
         
         // Server List Menu -> Create New -> Saves Menu
@@ -17,7 +16,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value || MenuPageV2.mainMenuOverhaul)
+            if (!PluginLoader.savePublicEnabled.Value || PluginLoader.mainMenuOverhaul)
                 return true;
 
             SemiFunc.MainMenuSetMultiplayer();
@@ -34,7 +33,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void MenuPageSaves_Start(MenuPageSaves __instance)
         {
-            if (SemiFunc.MainMenuIsMultiplayer() && !MenuPageV2.mainMenuOverhaul)
+            if (SemiFunc.MainMenuIsMultiplayer() && !PluginLoader.mainMenuOverhaul)
             {
                 __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
             }
@@ -44,42 +43,14 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(MenuButton), "OnSelect")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool MenuButton_OnSelect(MenuButton __instance)
         {
             if (__instance.menuButtonPopUp?.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
             {
-                if (MenuPageV2.mainMenuOverhaul)
+                if (PluginLoader.mainMenuOverhaul)
                 {
-                    var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
-                    repoPage.AddElementToScrollView(scrollView =>
-                    {
-                        var repoButton = MenuAPI.CreateREPOButton("Private", () =>
-                        {
-                            publicSavesMenuOpen = false;
-                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                            menuPageSaves?.OnNewGame();
-                        }, parent: scrollView, localPosition: Vector2.zero);
-                        return repoButton.rectTransform;
-                    });
-                    repoPage.AddElementToScrollView(scrollView =>
-                    {
-                        var repoButton = MenuAPI.CreateREPOButton("Public", () =>
-                        {
-                            publicSavesMenuOpen = true;
-                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                            menuPageSaves?.OnNewGame();
-                        }, parent: scrollView, localPosition: Vector2.zero);
-                        return repoButton.rectTransform;
-                    });
-                    repoPage.AddElementToScrollView(scrollView =>
-                    {
-                        var repoButton = MenuAPI.CreateREPOButton("Back", () =>
-                        {
-                            repoPage.ClosePage(false);
-                        }, parent: scrollView, localPosition: Vector2.zero);
-                        return repoButton.rectTransform;
-                    });
-                    repoPage.OpenPage(openOnTop: false);
+                    MenuPageV2.NewGame_Internal(__instance);
                     return false;
                 }
                 
@@ -93,30 +64,9 @@ namespace LobbyImprovements.Patches
 
             if (__instance.menuButtonPopUp?.headerText == "Load save?" && __instance.menuButtonPopUp?.bodyText == "Load this save file?")
             {
-                if (MenuPageV2.mainMenuOverhaul)
+                if (PluginLoader.mainMenuOverhaul)
                 {
-                    var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
-                    repoPage.AddElementToScrollView(scrollView =>
-                    {
-                        var repoButton = MenuAPI.CreateREPOButton("Private", () =>
-                        {
-                            publicSavesMenuOpen = false;
-                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                            menuPageSaves?.OnLoadGame();
-                        }, parent: scrollView, localPosition: Vector2.zero);
-                        return repoButton.rectTransform;
-                    });
-                    repoPage.AddElementToScrollView(scrollView =>
-                    {
-                        var repoButton = MenuAPI.CreateREPOButton("Public", () =>
-                        {
-                            publicSavesMenuOpen = true;
-                            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-                            menuPageSaves?.OnLoadGame();
-                        }, parent: scrollView, localPosition: Vector2.zero);
-                        return repoButton.rectTransform;
-                    });
-                    repoPage.OpenPage(openOnTop: false);
+                    MenuPageV2.LoadGame_Internal(__instance);
                     return false;
                 }
                 
@@ -182,7 +132,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
         {
-            if (!publicSavesMenuOpen && !MenuPageV2.mainMenuOverhaul)
+            if (!publicSavesMenuOpen && !PluginLoader.mainMenuOverhaul)
                 return true;
             
             MenuManager.instance.PageCloseAll();
