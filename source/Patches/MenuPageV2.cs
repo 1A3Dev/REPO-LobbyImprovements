@@ -344,29 +344,6 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        [HarmonyPatch(typeof(MenuPageTwoOptions), "Update")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool MenuPageTwoOptions_Update(MenuPageTwoOptions __instance)
-        {
-            if (!PluginLoader.mainMenuOverhaul || __instance.option2Button?.buttonTextString != "Public") return true;
-            
-            if (SemiFunc.InputDown(InputKey.Back) && MenuManager.instance.currentMenuPageIndex == MenuPageIndex.PopUpTwoOptions)
-            {
-                MenuManager.instance.PageReactivatePageUnderThisPage(__instance.menuPage);
-                __instance.menuPage.PageStateSet(MenuPage.PageState.Closing);
-            }
-            if (__instance.option1Button.buttonText.text != __instance.option1Button.buttonTextString)
-            {
-                __instance.option1Button.buttonText.text = __instance.option1Button.buttonTextString;
-            }
-            if (__instance.option2Button.buttonText.text != __instance.option2Button.buttonTextString)
-            {
-                __instance.option2Button.buttonText.text = __instance.option2Button.buttonTextString;
-            }
-            return false;
-        }
-        
         private static bool fetchingRegions;
         [HarmonyPatch(typeof(MenuPageSaves), "Start")]
         [HarmonyPostfix]
