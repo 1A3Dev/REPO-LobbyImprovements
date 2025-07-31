@@ -393,6 +393,11 @@ public class ObjectScreenshotTaker : MonoBehaviour
 				{
 					impactDetector.particleDisable = true;
 				}
+
+				if (module.name == "Valuable Gumball")
+				{
+					useCollisionsForBounds = true;
+				}
 			}
 
 			Bounds bounds = CalculateBounds(moduleObject, useCollisionsForBounds);
