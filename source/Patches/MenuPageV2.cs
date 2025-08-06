@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -155,7 +156,7 @@ namespace LobbyImprovements.Patches
         {
             return (regionCode?.ToUpper() ?? "") switch
             {
-                "" => "Pick Best Region",
+                "" => "Best Region",
                 "ASIA" => "Asia",
                 "AU" => "Australia",
                 "CAE" => "Canada East",
@@ -194,12 +195,24 @@ namespace LobbyImprovements.Patches
                 string ping = region.Ping > 200 || region.Ping == RegionPinger.PingWhenFailed ? ">200" : region.Ping.ToString();
                 options.Add(showPing ? $"{displayName} [{ping}ms]" : displayName);
             }
-
+            options = options.OrderBy(x => x).ToList();
+            
+            string[] array = PhotonNetwork.BestRegionSummaryInPreferences.Split(';', StringSplitOptions.None);
+            if (array.Length >= 3 && int.TryParse(array[1], out int num) && !string.IsNullOrEmpty(array[0]) && !string.IsNullOrEmpty(array[2]) && regionMap.Values.Any(x => x.Code == array[0]))
+            {
+                string displayName = GetRegionDisplayName(array[0]);
+                options = options.Prepend($"Best Region [{displayName}]").ToList();
+            }
+            else
+            {
+                options = options.Prepend("Best Region").ToList();
+            }
+            
             if (regionSlider)
                 Object.Destroy(regionSlider.gameObject);
             
             string defaultOption = options.FirstOrDefault(x => x.StartsWith(GetRegionDisplayName(PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion)));
-            regionSlider = MenuAPI.CreateREPOSlider("Region", null, OnRegionSelected, parent, stringOptions: options.OrderBy(x => x).Prepend("Pick Best Region").ToArray(), defaultOption: defaultOption, localPosition: localPosition);
+            regionSlider = MenuAPI.CreateREPOSlider("Region", null, OnRegionSelected, parent, stringOptions: options.ToArray(), defaultOption: defaultOption, localPosition: localPosition);
             regionSlider.labelTMP.text = "";
             regionSlider.transform.Find("SliderBG").gameObject.SetActive(false);
         }
@@ -250,8 +263,6 @@ namespace LobbyImprovements.Patches
                 randomLobbyBtn.menuButtonPopUp.option1Event = new UnityEvent();
                 randomLobbyBtn.menuButtonPopUp.option1Event.AddListener(__instance.ButtonCreateNew);
             }
-
-            ServerSettings.ResetBestRegionCodeInPreferences();
         }
         
         [HarmonyPatch(typeof(ConnectionCallbacksContainer), "OnRegionListReceived")]
