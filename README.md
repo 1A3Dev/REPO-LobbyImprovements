@@ -40,15 +40,15 @@ Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client s
 
 ### Commands
 
-| Name      | Arguments                                                       | Example                   | Description                                   | Host Only |
-| --------- | --------------------------------------------------------------- | ------------------------- | --------------------------------------------- | --------- |
-| /enemy    | [[string](https://1a3.uk/games/repo/diffs/?tab=3&tabEnemies=1)] | /enemy Ceiling Eye        | Spawns an enemy at the closest level point    | Yes       |
-| /item     | [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=0)]   | /item Grenade Duct Taped  | Spawns an item at the closest level point     | Yes       |
-| /setcash  | [number]                                                        | /setcash 5                | Sets the total cash amount                    | Yes       |
-| /setlevel | [number]                                                        | /setlevel 5               | Switches to a different level number          | Yes       |
-| /setname  | [string]                                                        | /setname v0.2.1 Test Save | Renames the current save file from "R.E.P.O." | Yes       |
-| /setscene | [[string](https://1a3.uk/games/repo/diffs/?tab=2)]              | /setscene random          | Switches to a different level scene           | Yes       |
-| /valuable | [[string](https://1a3.uk/games/repo/diffs/?tab=4&tabItems=1)]   | /valuable Animal Crate    | Spawns a valuable at the closest level point  | Yes       |
+| Name      | Arguments                                          | Example                   | Description                                   | Host Only |
+| --------- | -------------------------------------------------- | ------------------------- | --------------------------------------------- | --------- |
+| /enemy    | [[string](https://1a3.uk/games/repo/diffs/?tab=6)] | /enemy Ceiling Eye        | Spawns an enemy at the closest level point    | Yes       |
+| /item     | [[string](https://1a3.uk/games/repo/diffs/?tab=4)] | /item Grenade Duct Taped  | Spawns an item at the closest level point     | Yes       |
+| /setcash  | [number]                                           | /setcash 5                | Sets the total cash amount                    | Yes       |
+| /setlevel | [number]                                           | /setlevel 5               | Switches to a different level number          | Yes       |
+| /setname  | [string]                                           | /setname v0.2.1 Test Save | Renames the current save file from "R.E.P.O." | Yes       |
+| /setscene | [[string](https://1a3.uk/games/repo/diffs/?tab=2)] | /setscene random          | Switches to a different level scene           | Yes       |
+| /valuable | [[string](https://1a3.uk/games/repo/diffs/?tab=7)] | /valuable Animal Crate    | Spawns a valuable at the closest level point  | Yes       |
 
 ### Support
 

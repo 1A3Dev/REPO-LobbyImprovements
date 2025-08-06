@@ -1,4 +1,8 @@
-# 1.1.0-PRE
+# 1.1.0
+
+### CHANGES
+
+- Updated some links in the README.md
 
 ### FIXES
 
