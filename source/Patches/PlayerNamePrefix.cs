@@ -20,6 +20,8 @@ namespace LobbyImprovements.Patches
     {
         private static bool prefixSingleRequest = false; // Should prefixes for all players only be requested once at game start (if false it will request the needed players on lobby join)
         private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json"; // URL to fetch the allowed prefixes from
+
+        private static bool fetchedLocalPlayer = false;
         
         private static Dictionary<string, List<string>> playerPrefixData = new Dictionary<string, List<string>>();
         private static IEnumerator GetPlayerNamePrefixes(string[] steamIds, string logType)
@@ -88,6 +90,7 @@ namespace LobbyImprovements.Patches
 
             if (includesLocalPlayer)
             {
+                fetchedLocalPlayer = true;
                 PluginLoader.playerNamePrefixSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?", acceptableValueList));
                 PluginLoader.playerNamePrefixSelected.SettingChanged += (sender, args) =>
                 {
@@ -175,39 +178,28 @@ namespace LobbyImprovements.Patches
             }
         }
         
-        private static bool prefixRequestFailed;
-        
-        [HarmonyPatch(typeof(MainMenuOpen), "Start")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        internal static void MainMenuOpen_Start(MainMenuOpen __instance)
-        {
-            if (prefixSingleRequest)
-            {
-                if (SteamClient.IsValid)
-                    __instance.StartCoroutine(GetPlayerNamePrefixes([], "MainMenuOpen_Start"));
-                else
-                    prefixRequestFailed = true;
-                return;
-            }
-            if (!SteamClient.IsValid) return;
-            string[] steamIds = [SteamClient.SteamId.ToString()];
-            if (steamIds.Length > 0)
-                __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "MainMenuOpen_Start"));
-        }
-        
+        // Fetch local player's name prefixes
         [HarmonyPatch(typeof(SteamManager), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         internal static void SteamManager_Awake(SteamManager __instance)
         {
-            if (prefixSingleRequest && SteamClient.IsValid && prefixRequestFailed)
+            if (SteamClient.IsValid && !fetchedLocalPlayer)
             {
-                prefixRequestFailed = false;
-                __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
+                if (prefixSingleRequest)
+                {
+                    __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
+                }
+                else
+                {
+                    string[] steamIds = [SteamClient.SteamId.ToString()];
+                    if (steamIds.Length > 0)
+                        __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
+                }
             }
         }
         
+        // Fetch other players name prefixes
         [HarmonyPatch(typeof(SteamManager), "OnLobbyEntered")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
@@ -222,6 +214,7 @@ namespace LobbyImprovements.Patches
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
         }
         
+        // Fetch joining player's name prefixes
         [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberJoined")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
@@ -235,20 +228,20 @@ namespace LobbyImprovements.Patches
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));
         }
         
+        // Remove leaving player's name prefixes
         [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberLeft")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         internal static void SteamManager_OnLobbyMemberLeft(Lobby _lobby, Friend _friend)
         {
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
-            
-            if (!prefixSingleRequest && playerPrefixData.ContainsKey(_friend.Id.ToString()))
-            {
-                PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_OnLobbyMemberLeft] Removing 1 player ({_friend.Id})");
-                playerPrefixData.Remove(_friend.Id.ToString());
-            }
+
+            if (prefixSingleRequest || !playerPrefixData.ContainsKey(_friend.Id.ToString())) return;
+            PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_OnLobbyMemberLeft] Removing 1 player ({_friend.Id})");
+            playerPrefixData.Remove(_friend.Id.ToString());
         }
         
+        // Remove all name prefixes except the local player
         [HarmonyPatch(typeof(SteamManager), "LeaveLobby")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
