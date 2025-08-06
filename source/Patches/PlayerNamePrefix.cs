@@ -18,7 +18,6 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PlayerNamePrefix
     {
-        private static bool prefixSingleRequest = false; // Should prefixes for all players only be requested once at game start (if false it will request the needed players on lobby join)
         private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json"; // URL to fetch the allowed prefixes from
 
         private static bool fetchedLocalPlayer = false;
@@ -186,16 +185,9 @@ namespace LobbyImprovements.Patches
         {
             if (SteamClient.IsValid && !fetchedLocalPlayer)
             {
-                if (prefixSingleRequest)
-                {
-                    __instance.StartCoroutine(GetPlayerNamePrefixes([], "SteamManager_Awake"));
-                }
-                else
-                {
-                    string[] steamIds = [SteamClient.SteamId.ToString()];
-                    if (steamIds.Length > 0)
-                        __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
-                }
+                string[] steamIds = [SteamClient.SteamId.ToString()];
+                if (steamIds.Length > 0)
+                    __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_Awake"));
             }
         }
         
@@ -208,7 +200,6 @@ namespace LobbyImprovements.Patches
             SteamFriends.SetRichPresence("steam_player_group", _lobby.Id.ToString());
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
             
-            if (prefixSingleRequest) return;
             string[] steamIds = _lobby.Members.Select(x => x.Id.ToString()).Where(x => x != SteamClient.SteamId.ToString()).ToArray();
             if (steamIds.Length > 0)
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
@@ -222,7 +213,6 @@ namespace LobbyImprovements.Patches
         {
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
             
-            if (prefixSingleRequest) return;
             string[] steamIds = [_friend.Id.ToString()];
             if (steamIds.Length > 0)
                 __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyMemberJoined"));
@@ -236,7 +226,7 @@ namespace LobbyImprovements.Patches
         {
             SteamFriends.SetRichPresence("steam_player_group_size", _lobby.MemberCount.ToString());
 
-            if (prefixSingleRequest || !playerPrefixData.ContainsKey(_friend.Id.ToString())) return;
+            if (!playerPrefixData.ContainsKey(_friend.Id.ToString())) return;
             PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_OnLobbyMemberLeft] Removing 1 player ({_friend.Id})");
             playerPrefixData.Remove(_friend.Id.ToString());
         }
@@ -249,7 +239,6 @@ namespace LobbyImprovements.Patches
         {
             SteamFriends.ClearRichPresence();
             
-            if (prefixSingleRequest) return;
             Dictionary<string, List<string>> newPlayerPrefixData = playerPrefixData.Where(x => x.Key == SteamClient.SteamId.ToString()).ToDictionary(x => x.Key, x => x.Value);
             if (playerPrefixData.Count <= newPlayerPrefixData.Count) return;
             PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_LeaveLobby] Removing {playerPrefixData.Count - newPlayerPrefixData.Count} players");
