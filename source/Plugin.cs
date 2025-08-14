@@ -76,16 +76,19 @@ namespace LobbyImprovements
             catch (Exception e)
             {
                 StaticLogger.LogError("PlayerNamePrefix Patch Failed: " + e);
-                
-                playerNamePrefixSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
-                playerNamePrefixSelected.SettingChanged += (sender, args) =>
+
+                if (playerNamePrefixSelected == null)
                 {
-                    PlayerNamePrefix.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
-                    if (GameManager.Multiplayer())
+                    playerNamePrefixSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
+                    playerNamePrefixSelected.SettingChanged += (sender, args) =>
                     {
-                        PlayerNamePrefix.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", playerNamePrefixSelected.Value);
-                    }
-                };
+                        PlayerNamePrefix.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
+                        if (GameManager.Multiplayer())
+                        {
+                            PlayerNamePrefix.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", playerNamePrefixSelected.Value);
+                        }
+                    };
+                }
             }
             
             saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "Should saves be automatically deleted when everyone dies?");
