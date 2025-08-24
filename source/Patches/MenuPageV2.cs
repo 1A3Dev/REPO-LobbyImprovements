@@ -231,6 +231,7 @@ namespace LobbyImprovements.Patches
             menuPageServerList.roomListSearched.Clear();
             
             menuPageServerList.receivedList = false;
+            menuPageServerList.pageMax = 0;
             menuPageServerList.buttonNext.HideSetInstant();
             menuPageServerList.buttonPrevious.HideSetInstant();
             menuPageServerList.StartCoroutine(menuPageServerList.GetServerList());

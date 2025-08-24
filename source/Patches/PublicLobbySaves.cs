@@ -48,7 +48,7 @@ namespace LobbyImprovements.Patches
         {
             if (__instance.menuButtonPopUp?.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
             {
-                if (PluginLoader.mainMenuOverhaul)
+                if (PluginLoader.mainMenuOverhaul && SemiFunc.MainMenuIsMultiplayer())
                 {
                     MenuPageV2.NewGame_Internal(__instance);
                     return false;
@@ -64,7 +64,7 @@ namespace LobbyImprovements.Patches
 
             if (__instance.menuButtonPopUp?.headerText == "Load save?" && __instance.menuButtonPopUp?.bodyText == "Load this save file?")
             {
-                if (PluginLoader.mainMenuOverhaul)
+                if (PluginLoader.mainMenuOverhaul && SemiFunc.MainMenuIsMultiplayer())
                 {
                     MenuPageV2.LoadGame_Internal(__instance);
                     return false;
