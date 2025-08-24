@@ -106,7 +106,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 	private void OnDestroy()
 	{
 		PluginLoader.StaticLogger.LogInfo("[ModuleScreenshotTaker] Destroying...");
-		Destroy(ScreenshotLight?.gameObject);
+		if (ScreenshotLight) Destroy(ScreenshotLight.gameObject);
 	}
 
 	private void ScreenshotStart()
@@ -125,7 +125,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		isTakingScreenshots = false;
 		PluginLoader.StaticLogger.LogInfo("[ModuleScreenshotTaker] Finished");
 		// RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.Recording);
-		Destroy(ScreenshotLight?.gameObject);
+		if (ScreenshotLight) Destroy(ScreenshotLight.gameObject);
 		Destroy(gameObject);
 	}
 	
@@ -483,6 +483,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		screenshot = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
 		screenshot.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
 		screenshot.Apply();
+		
 		byte[] bytes = screenshot.EncodeToPNG();
 		File.WriteAllBytes(filePath, bytes);
 
