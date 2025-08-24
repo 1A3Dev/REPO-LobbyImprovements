@@ -142,7 +142,7 @@ namespace LobbyImprovements
         private static void SetupTesterOverlay(bool _enabled)
         {
             GameObject overlayObj = GameObject.Find("TesterOverlay");
-            if (_enabled && overlayObj == null)
+            if (_enabled && overlayObj == null && !Debug.isDebugBuild)
             {
                 GameObject testerOverlayObj = new GameObject("TesterOverlay");
                 testerOverlayObj.hideFlags = HideFlags.HideAndDontSave;
