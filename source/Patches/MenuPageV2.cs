@@ -217,15 +217,6 @@ namespace LobbyImprovements.Patches
                 _ => regionCode?.ToUpper()
             };
         }
-        
-        [HarmonyPatch(typeof(MenuPageRegions), "PickRegion")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static void MenuPageRegions_PickRegion(string _region)
-        {
-            PlayerPrefs.SetString("PUNSelectedRegion", _region);
-            PlayerPrefs.Save();
-        }
 
         // [Server List] Random Matchmaking & Refresh Buttons
         private static void RefreshLobbies()
@@ -292,19 +283,6 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Regions > Original Page
-        [HarmonyPatch(typeof(MenuPageRegions), "ExitPage")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool MenuPageRegions_ExitPage(MenuPageRegions __instance)
-        {
-            if (!PluginLoader.mainMenuOverhaul) return true;
-            
-            MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(__instance.type == MenuPageRegions.Type.PlayRandom ? MenuPageIndex.PublicGameChoice : MenuPageIndex.Saves);
-            return false;
-        }
-        
         // Public Game Choice > Main Menu
         [HarmonyPatch(typeof(MenuPagePublicGameChoice), "ExitPage")]
         [HarmonyPrefix]
@@ -315,6 +293,28 @@ namespace LobbyImprovements.Patches
             
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.Main);
+            return false;
+        }
+        
+        [HarmonyPatch(typeof(MenuPageRegions), "PickRegion")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static void MenuPageRegions_PickRegion(string _region)
+        {
+            PlayerPrefs.SetString("PUNSelectedRegion", _region);
+            PlayerPrefs.Save();
+        }
+        
+        // Regions > Original Page
+        [HarmonyPatch(typeof(MenuPageRegions), "ExitPage")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool MenuPageRegions_ExitPage(MenuPageRegions __instance)
+        {
+            if (!PluginLoader.mainMenuOverhaul) return true;
+            
+            MenuManager.instance.PageCloseAll();
+            MenuManager.instance.PageOpen(__instance.type == MenuPageRegions.Type.PlayRandom ? MenuPageIndex.PublicGameChoice : MenuPageIndex.Saves);
             return false;
         }
     }
