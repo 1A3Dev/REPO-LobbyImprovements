@@ -21,6 +21,17 @@ namespace LobbyImprovements.Patches
         internal static void NewGame_Internal(MenuButton __instance)
         {
             var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
+            // repoPage.AddElementToScrollView(scrollView =>
+            // {
+            //     var repoButton = MenuAPI.CreateREPOButton("Singleplayer", () =>
+            //     {
+            //         SemiFunc.MainMenuSetSingleplayer();
+            //         PublicLobbySaves.publicSavesMenuOpen = false;
+            //         MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+            //         menuPageSaves?.OnNewGame();
+            //     }, parent: scrollView, localPosition: Vector2.zero);
+            //     return repoButton.rectTransform;
+            // });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Private", () =>
@@ -55,6 +66,17 @@ namespace LobbyImprovements.Patches
         internal static void LoadGame_Internal(MenuButton __instance)
         {
             var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
+            // repoPage.AddElementToScrollView(scrollView =>
+            // {
+            //     var repoButton = MenuAPI.CreateREPOButton("Singleplayer", () =>
+            //     {
+            //         SemiFunc.MainMenuSetSingleplayer();
+            //         PublicLobbySaves.publicSavesMenuOpen = false;
+            //         MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+            //         menuPageSaves?.OnLoadGame();
+            //     }, parent: scrollView, localPosition: Vector2.zero);
+            //     return repoButton.rectTransform;
+            // });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Private", () =>
@@ -75,6 +97,14 @@ namespace LobbyImprovements.Patches
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
             });
+            repoPage.AddElementToScrollView(scrollView =>
+            {
+                var repoButton = MenuAPI.CreateREPOButton("Back", () =>
+                {
+                    repoPage.ClosePage(false);
+                }, parent: scrollView, localPosition: Vector2.zero);
+                return repoButton.rectTransform;
+            });
             repoPage.OpenPage(openOnTop: false);
         }
 
@@ -92,8 +122,6 @@ namespace LobbyImprovements.Patches
 
             TextMeshProUGUI publicGameText = __instance.rectTransform.transform.Find("Menu Button - Public Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
             if (publicGameText) publicGameText.text = "Join Game";
-            
-            regionMap.Clear();
         }
         
         // Main Menu > Saves Menu (Skip region menu)
@@ -130,28 +158,41 @@ namespace LobbyImprovements.Patches
         {
             if (!PluginLoader.mainMenuOverhaul) return;
 
-            if (menuPageIndex == MenuPageIndex.PublicGameChoice)
+            switch (menuPageIndex)
             {
-                TextMeshProUGUI menuPageHeader = __result.transform.Find("Header/Text (TMP)")?.GetComponent<TextMeshProUGUI>();
-                if (menuPageHeader)
+                case MenuPageIndex.PublicGameChoice:
                 {
-                    menuPageHeader.text = "Join Game";
-                    __instance.StartCoroutine(GetRegionsForOtherMenus());
+                    TextMeshProUGUI menuPageHeader = __result.transform.Find("Header/Text (TMP)")?.GetComponent<TextMeshProUGUI>();
+                    if (menuPageHeader)
+                    {
+                        menuPageHeader.text = "Join Game";
+                    }
+
+                    AddRegionMenuButton(__result.transform, new Vector2(8f, 8f), MenuPageRegions.Type.PlayRandom);
+                    break;
+                }
+                case MenuPageIndex.Saves:
+                {
+                    if (SemiFunc.MainMenuIsMultiplayer())
+                    {
+                        AddRegionMenuButton(__result.transform, new Vector2(520f, 325f), MenuPageRegions.Type.HostGame);
+                    }
+                    break;
                 }
             }
-            AddRegionSliders(false);
+        }
+
+        private static void AddRegionMenuButton(Transform parent, Vector2 localPosition, MenuPageRegions.Type pageType)
+        {
+            DataDirector.instance.networkRegion = PlayerPrefs.GetString("PUNSelectedRegion", "");
+            ServerSettings.ResetBestRegionCodeInPreferences();
+            MenuAPI.CreateREPOButton(GetRegionDisplayName(DataDirector.instance.networkRegion), () =>
+            {
+                MenuManager.instance.PageCloseAll();
+                MenuManager.instance.PageOpen(MenuPageIndex.Regions).GetComponent<MenuPageRegions>().type = pageType;
+            }, parent: parent, localPosition: localPosition);
         }
         
-        private static REPOSlider regionSlider;
-        private static Dictionary<string, Region> regionMap = new Dictionary<string, Region>();
-        private static void OnRegionSelected(string regionIndex)
-        {
-            string regionName = regionIndex.Contains(" [") ? regionIndex.Split(" [")[0] : regionIndex;
-            regionMap.TryGetValue(regionName, out Region value);
-            PluginLoader.StaticLogger.LogInfo($"[Public Lobby] Selected Region: {regionName} ({value?.Code})");
-            DataDirector.instance.networkRegion = value?.Code ?? "";
-            DataDirector.instance.PhotonSetRegion();
-        }
         private static string GetRegionDisplayName(string regionCode)
         {
             return (regionCode?.ToUpper() ?? "") switch
@@ -176,45 +217,14 @@ namespace LobbyImprovements.Patches
                 _ => regionCode?.ToUpper()
             };
         }
-        private static void LoadRegions(Transform parent, Vector2 localPosition, bool showPing)
+        
+        [HarmonyPatch(typeof(MenuPageRegions), "PickRegion")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static void MenuPageRegions_PickRegion(string _region)
         {
-            List<Region> enabledRegions = PhotonNetwork.NetworkingClient?.RegionHandler?.EnabledRegions;
-            if (enabledRegions != null)
-            {
-                regionMap.Clear();
-                foreach (Region region in enabledRegions)
-                {
-                    regionMap.Add(GetRegionDisplayName(region.Code), region);
-                }
-            }
-            
-            List<string> options = new List<string>();
-            foreach (Region region in regionMap.Values)
-            {
-                string displayName = GetRegionDisplayName(region.Code);
-                string ping = region.Ping > 200 || region.Ping == RegionPinger.PingWhenFailed ? ">200" : region.Ping.ToString();
-                options.Add(showPing ? $"{displayName} [{ping}ms]" : displayName);
-            }
-            options = options.OrderBy(x => x).ToList();
-            
-            string[] array = PhotonNetwork.BestRegionSummaryInPreferences.Split(';', StringSplitOptions.None);
-            if (array.Length >= 3 && int.TryParse(array[1], out int num) && !string.IsNullOrEmpty(array[0]) && !string.IsNullOrEmpty(array[2]) && regionMap.Values.Any(x => x.Code == array[0]))
-            {
-                string displayName = GetRegionDisplayName(array[0]);
-                options = options.Prepend($"Best Region [{displayName}]").ToList();
-            }
-            else
-            {
-                options = options.Prepend("Best Region").ToList();
-            }
-            
-            if (regionSlider)
-                Object.Destroy(regionSlider.gameObject);
-            
-            string defaultOption = options.FirstOrDefault(x => x.StartsWith(GetRegionDisplayName(PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion)));
-            regionSlider = MenuAPI.CreateREPOSlider("Region", null, OnRegionSelected, parent, stringOptions: options.ToArray(), defaultOption: defaultOption, localPosition: localPosition);
-            regionSlider.labelTMP.text = "";
-            regionSlider.transform.Find("SliderBG").gameObject.SetActive(false);
+            PlayerPrefs.SetString("PUNSelectedRegion", _region);
+            PlayerPrefs.Save();
         }
 
         // [Server List] Random Matchmaking & Refresh Buttons
@@ -266,54 +276,6 @@ namespace LobbyImprovements.Patches
             }
         }
         
-        [HarmonyPatch(typeof(ConnectionCallbacksContainer), "OnRegionListReceived")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void OnRegionListReceived()
-        {
-            if (!PluginLoader.mainMenuOverhaul) return;
-            AddRegionSliders(false);
-        }
-        
-        [HarmonyPatch(typeof(ConnectionCallbacksContainer), "OnConnectedToMaster")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void OnConnectedToMaster()
-        {
-            if (fetchingRegions && MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList)
-                PhotonNetwork.Disconnect();
-            
-            fetchingRegions = false;
-            
-            if (!PluginLoader.mainMenuOverhaul) return;
-            AddRegionSliders(true);
-        }
-
-        private static void AddRegionSliders(bool showPing)
-        {
-            if (regionMap.Count > 0)
-                showPing = true;
-            
-            MenuPagePublicGameChoice menuPagePublicChoice = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPagePublicGameChoice>();
-            if (menuPagePublicChoice)
-            {
-                LoadRegions(menuPagePublicChoice.transform, new Vector2(190, 10), showPing);
-            }
-            
-            MenuPageServerList menuPageServerList = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPageServerList>();
-            if (menuPageServerList)
-            {
-                LoadRegions(menuPageServerList.transform.Find("Panel"), new Vector2(-170, -195), showPing);
-            }
-            
-            MenuPageSaves menuPageSaves = MenuManager.instance?.currentMenuPage?.GetComponent<MenuPageSaves>();
-            if (menuPageSaves && MainMenuOpen.instance?.mainMenuGameModeState == MainMenuOpen.MainMenuGameModeState.MultiPlayer)
-            {
-                Transform backButtonObj = menuPageSaves.gameObject.transform.Find("Menu Button - < GO BACK");
-                LoadRegions(backButtonObj.transform.parent, new Vector2(400, 328), true);
-            }
-        }
-        
         [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -329,17 +291,17 @@ namespace LobbyImprovements.Patches
             RunManager.instance.lobbyJoin = true;
             return false;
         }
-
-        // Server List > Main Menu
-        [HarmonyPatch(typeof(MenuPageServerList), "ExitPage")]
+        
+        // Regions > Original Page
+        [HarmonyPatch(typeof(MenuPageRegions), "ExitPage")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static bool MenuPageServerList_ExitPage()
+        private static bool MenuPageRegions_ExitPage(MenuPageRegions __instance)
         {
             if (!PluginLoader.mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.Main);
+            MenuManager.instance.PageOpen(__instance.type == MenuPageRegions.Type.PlayRandom ? MenuPageIndex.PublicGameChoice : MenuPageIndex.Saves);
             return false;
         }
         
@@ -354,46 +316,6 @@ namespace LobbyImprovements.Patches
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.Main);
             return false;
-        }
-        
-        private static bool fetchingRegions;
-        [HarmonyPatch(typeof(MenuPageSaves), "Start")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void MenuPageSaves_Start(MenuPageSaves __instance)
-        {
-            if (!PluginLoader.mainMenuOverhaul || !SemiFunc.MainMenuIsMultiplayer()) return;
-            MenuManager.instance.StartCoroutine(GetRegionsForOtherMenus());
-        }
-
-        private static IEnumerator GetRegionsForOtherMenus()
-        {
-            if (fetchingRegions)
-            {
-                PluginLoader.StaticLogger.LogInfo("[Public Lobby] Already fetching regions");
-                yield break;
-            }
-            if (regionMap.Count > 0)
-            {
-                yield break;
-            }
-            
-            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Started fetching regions");
-            fetchingRegions = true;
-            PhotonNetwork.Disconnect();
-            while (MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList && PhotonNetwork.NetworkingClient.State != ClientState.Disconnected && PhotonNetwork.NetworkingClient.State != 0)
-            {
-                yield return null;
-            }
-            if (MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList)
-            {
-                SteamManager.instance.SendSteamAuthTicket();
-                DataDirector.instance.PhotonSetRegion();
-                DataDirector.instance.PhotonSetVersion();
-                DataDirector.instance.PhotonSetAppId();
-                ServerSettings.ResetBestRegionCodeInPreferences();
-                PhotonNetwork.ConnectUsingSettings();
-            }
         }
     }
 }
