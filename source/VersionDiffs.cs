@@ -24,7 +24,7 @@ namespace LobbyImprovements
 		[HarmonyWrapSafe]
 		private static void BuildManager_Awake()
 		{
-			if (checkedVersion || !BuildManager.instance || !Directory.Exists(rootPath)) return;
+			if (checkedVersion || !BuildManager.instance || RunManager.instance.levelCurrent != RunManager.instance.levelMainMenu || !Directory.Exists(rootPath)) return;
 
 			Version newVersion = BuildManager.instance.version;
 			string exportPath = $"{rootPath}/{newVersion.title}";
@@ -87,7 +87,7 @@ namespace LobbyImprovements
 			checkedVersion = true;
 		}
 
-		static string GetMajorMinorPatch(string version)
+		private static string GetMajorMinorPatch(string version)
 		{
 			if (version.StartsWith("v")) version = version.Substring(1);
 
@@ -120,23 +120,51 @@ namespace LobbyImprovements
 					CreateNoWindow = true,
 					WorkingDirectory = Path.GetDirectoryName(batchFilePath)
 				};
-                
-				using (var proc = new Process())
+
+				var proc = new Process
 				{
-					proc.StartInfo = psi;
-					Debug.Log($"GenerateDiffsCode: Running batch: \"{psi.FileName}\" {psi.Arguments}");
-					proc.Start();
-                    
-					string stdOut = proc.StandardOutput.ReadToEnd();
-					string stdErr = proc.StandardError.ReadToEnd();
-                    
-					proc.WaitForExit();
-                    
-					if (!string.IsNullOrEmpty(stdOut)) Debug.Log($"[DiffsBatch][OUT]\n{stdOut}");
-					if (!string.IsNullOrEmpty(stdErr)) Debug.LogWarning($"[DiffsBatch][ERR]\n{stdErr}");
-					if (proc.ExitCode != 0) Debug.LogError($"GenerateDiffsCode: Batch exited with code {proc.ExitCode}.");
-					else Debug.Log("GenerateDiffsCode: Diff generation batch completed successfully.");
+					StartInfo = psi,
+					EnableRaisingEvents = true
+				};
+
+				proc.OutputDataReceived += (_, e) =>
+				{
+					if (!string.IsNullOrEmpty(e.Data)) Debug.Log($"[DiffsBatch][OUT] {e.Data}");
+				};
+
+				proc.ErrorDataReceived += (_, e) =>
+				{
+					if (!string.IsNullOrEmpty(e.Data)) Debug.LogWarning($"[DiffsBatch][ERR] {e.Data}");
+				};
+
+				proc.Exited += (_, __) =>
+				{
+					try
+					{
+						if (proc.ExitCode != 0) Debug.LogError($"GenerateDiffsCode: Batch exited with code {proc.ExitCode}.");
+						else Debug.Log("GenerateDiffsCode: Diff generation batch completed successfully.");
+					}
+					catch (Exception ex)
+					{
+						Debug.LogError($"GenerateDiffsCode: Exception reading process exit code: {ex}");
+					}
+					finally
+					{
+						proc.Dispose();
+					}
+				};
+
+				Debug.Log($"GenerateDiffsCode: Running batch: \"{psi.FileName}\" {psi.Arguments}");
+				
+				if (!proc.Start())
+				{
+					Debug.LogError("GenerateDiffsCode: Failed to start batch process.");
+					proc.Dispose();
+					return;
 				}
+				
+				proc.BeginOutputReadLine();
+				proc.BeginErrorReadLine();
 			}
 			catch (Exception ex)
 			{
