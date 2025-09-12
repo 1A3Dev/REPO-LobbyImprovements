@@ -137,6 +137,17 @@ namespace LobbyImprovements
             }
             
             StaticLogger.LogInfo("Patches Loaded");
+            
+#if DEBUG
+            try
+            {
+                harmony.PatchAll(typeof(VersionDiffs));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("VersionDiffs Patch Failed: " + e);
+            }
+#endif
         }
 
         private static void SetupTesterOverlay(bool _enabled)
