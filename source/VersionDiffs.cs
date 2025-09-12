@@ -14,7 +14,7 @@ namespace LobbyImprovements
 	[HarmonyPatch]
 	public class VersionDiffs
 	{
-		private static bool checkedVersion = false;
+		private static bool checkedVersion;
         
 		private static string rootPath = "D:\\Documents\\Coding\\Discord\\LogiBot-Backend\\diffs\\repo";
 		private static string batchFilePath = "D:\\Documents\\Coding\\Diffs\\repo\\auto-generate-diffs.bat";
@@ -148,7 +148,6 @@ namespace LobbyImprovements
 		#region JSON Diffs
 		private static void GenerateDiffsJSON(string exportPath)
 		{
-#if DEBUG
 			SortedDictionary<string, dynamic> generalData = new SortedDictionary<string, dynamic> {
 				{ "itemSpawnTargetAmount", ShopManager.instance.itemSpawnTargetAmount },
 				{ "itemConsumablesAmount", ShopManager.instance.itemConsumablesAmount },
@@ -430,7 +429,6 @@ namespace LobbyImprovements
 					Debug.LogWarning($"{Path.GetFileName(fileExportPath)} already exists, skipping export.");
 				}
 			}
-#endif
 		}
 		#endregion
 	}
