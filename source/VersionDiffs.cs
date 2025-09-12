@@ -44,12 +44,12 @@ namespace LobbyImprovements
 			string lastVersion = "";
 			if (File.Exists($"{rootPath}/versions.json"))
 			{
+				string branchName = Steamworks.SteamApps.CurrentBetaName ?? "public";
+				
 				string versionsString = File.ReadAllText($"{rootPath}/versions.json");
 				List<SortedDictionary<string, object>> versionsData = JsonConvert.DeserializeObject<List<SortedDictionary<string, object>>>(versionsString);
 				if (versionsData.All(x => (string)x["assets"] != newVersion.title))
 				{
-					string branchName = Steamworks.SteamApps.CurrentBetaName ?? "public";
-                    
 					// Remove branch from latest list
 					foreach (var entry in versionsData)
 					{
@@ -78,7 +78,7 @@ namespace LobbyImprovements
 					File.WriteAllText($"{rootPath}/versions.json", JsonConvert.SerializeObject(versionsData, Formatting.Indented));
 				}
                 
-				lastVersion = (string)versionsData.FirstOrDefault(x => (string)x["assets"] != newVersion.title)?["assets"];
+				lastVersion = (string)versionsData.FirstOrDefault(x => (string)x["assets"] != newVersion.title && (string)x["branch"] == branchName)?["assets"];
 			}
             
 			GenerateDiffsJSON(exportPath);
