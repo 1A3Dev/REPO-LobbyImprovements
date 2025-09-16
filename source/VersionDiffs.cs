@@ -72,6 +72,10 @@ namespace LobbyImprovements
 						{ "latest", new List<string> { branchName } },
 						{ "manifest", Steamworks.SteamApps.BuildId.ToString() },
 						{ "password", branchPassword },
+						{ "supportedOS", new SortedDictionary<string, string> {
+							{ "windows", "Steam" },
+							{ "macos", "Manual" }
+						} },
 						{ "title", newVersion.title },
 						{ "version", GetMajorMinorPatch(newVersion.title) },
 					});
