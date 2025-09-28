@@ -147,7 +147,7 @@ namespace LobbyImprovements.Patches
             if (!PluginLoader.mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.PublicGameChoice);
+            MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
             return false;
         }
         
@@ -177,6 +177,11 @@ namespace LobbyImprovements.Patches
                     {
                         AddRegionMenuButton(__result.transform, new Vector2(520f, 325f), MenuPageRegions.Type.HostGame);
                     }
+                    break;
+                }
+                case MenuPageIndex.ServerList:
+                {
+                    AddRegionMenuButton(__result.transform, new Vector2(8f, 8f), MenuPageRegions.Type.PlayRandom);
                     break;
                 }
             }
@@ -266,7 +271,15 @@ namespace LobbyImprovements.Patches
                 randomLobbyBtn.menuButtonPopUp.option1Event.AddListener(__instance.ButtonCreateNew);
             }
         }
-        
+
+        [HarmonyPatch(typeof(MenuPageServerList), "OnDestroy")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool MenuPageServerList_OnDestroy()
+        {
+            return !MenuManager.instance || MenuManager.instance.currentMenuPageIndex != MenuPageIndex.Regions;
+        }
+
         [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -280,6 +293,19 @@ namespace LobbyImprovements.Patches
             GameManager.instance.localTest = false;
             RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
             RunManager.instance.lobbyJoin = true;
+            return false;
+        }
+        
+        // Server List > Main Menu
+        [HarmonyPatch(typeof(MenuPageServerList), "ExitPage")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool MenuPageServerList_ExitPage()
+        {
+            if (!PluginLoader.mainMenuOverhaul) return true;
+            
+            MenuManager.instance.PageCloseAll();
+            MenuManager.instance.PageOpen(MenuPageIndex.Main);
             return false;
         }
         
@@ -314,8 +340,16 @@ namespace LobbyImprovements.Patches
             if (!PluginLoader.mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(__instance.type == MenuPageRegions.Type.PlayRandom ? MenuPageIndex.PublicGameChoice : MenuPageIndex.Saves);
+            MenuManager.instance.PageOpen(__instance.type == MenuPageRegions.Type.PlayRandom ? MenuPageIndex.ServerList : MenuPageIndex.Saves);
             return false;
+        }
+        
+        [HarmonyPatch(typeof(MenuPageRegions), "OnDestroy")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool MenuPageRegions_OnDestroy()
+        {
+            return !MenuManager.instance || MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList;
         }
     }
 }
