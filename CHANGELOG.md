@@ -2,7 +2,7 @@
 
 ### CHANGES
 
-- Added "Improved Layout" config option for the main menu which reduces the amount of clicks to access some sections (only visible if you have [MenuLib](https://thunderstore.io/c/repo/p/nickklmao/MenuLib/) enabled)
+- Added "Improved Layout" config option for the main menu which reduces the amount of clicks to access some pages - this requires you to have [MenuLib](https://thunderstore.io/c/repo/p/nickklmao/MenuLib/) enabled!
 - Disabled some commands in debug builds
 
 # 1.1.1
