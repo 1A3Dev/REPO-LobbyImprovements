@@ -2,7 +2,11 @@
 
 ### CHANGES
 
-- Added "Improved Layout" config option for the main menu which reduces the amount of clicks to access some pages - this requires you to have [MenuLib](https://thunderstore.io/c/repo/p/nickklmao/MenuLib/) enabled!
+- Added "Improved Layout" config option for the main menu. This requires you to have [MenuLib](https://thunderstore.io/c/repo/p/nickklmao/MenuLib/) enabled. The main differences with it enabled are:
+  - Region selection defaults to the last selected region and is accessible via a button (instead of automatically showing each time you try to play multiplayer)
+  - Clicking "Host Game" on the main menu allows you to host a private/public save file
+  - Clicking "Join Game" on the main menu takes you straight to the server list
+  - Added a button to refresh the server list
 - Disabled some commands in debug builds
 
 # 1.1.1
