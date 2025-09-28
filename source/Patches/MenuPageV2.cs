@@ -325,10 +325,21 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(MenuPageRegions), "PickRegion")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static void MenuPageRegions_PickRegion(string _region)
+        [HarmonyPriority(Priority.First)]
+        private static bool MenuPageRegions_PickRegion(MenuPageRegions __instance, string _region)
         {
             PlayerPrefs.SetString("PUNSelectedRegion", _region);
             PlayerPrefs.Save();
+            
+            if (__instance.type != MenuPageRegions.Type.HostGame)
+            {
+                DataDirector.instance.networkRegion = _region;
+                MenuManager.instance.PageCloseAll();
+                MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
+                return false;
+            }
+
+            return true;
         }
         
         // Regions > Original Page
