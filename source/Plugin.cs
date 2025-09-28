@@ -141,9 +141,9 @@ namespace LobbyImprovements
                 StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
 
+            mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
             {
-                mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
                 try
                 {
                     harmony.PatchAll(typeof(MenuPageV2));
@@ -155,6 +155,10 @@ namespace LobbyImprovements
 #if DEBUG
                 mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
 #endif
+            }
+            else if (mainMenuOverhaulEnabled.Value)
+            {
+                StaticLogger.LogWarning("The 'Improved Layout' of the main menu requires the MenuLib mod. Please install it if you wish to use that feature.");
             }
 
             StaticLogger.LogInfo("Patches Loaded");
