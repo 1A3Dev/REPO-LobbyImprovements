@@ -1,3 +1,9 @@
+# 1.1.1
+
+### CHANGES
+
+- Disabled tester overlay on the tester branch
+
 # 1.1.0
 
 ### CHANGES
