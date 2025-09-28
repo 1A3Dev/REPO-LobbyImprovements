@@ -1,3 +1,9 @@
+# 1.1.2
+
+### CHANGES
+
+- Added "Improved Layout" config option for the main menu which reduces the amount of clicks to access some sections (only visible if you have MenuLib enabled)
+
 # 1.1.1
 
 ### CHANGES
