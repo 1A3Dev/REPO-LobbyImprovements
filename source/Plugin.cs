@@ -10,6 +10,7 @@ using UnityEngine;
 namespace LobbyImprovements
 {
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.SoftDependency)]
     internal class PluginLoader : BaseUnityPlugin
     {
         private readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
@@ -32,6 +33,10 @@ namespace LobbyImprovements
 
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
+        
+        internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
+        
+        internal static bool mainMenuOverhaul;
         
         private void Awake()
         {
@@ -135,7 +140,27 @@ namespace LobbyImprovements
             {
                 StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
-            
+
+            mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
+            {
+                try
+                {
+                    harmony.PatchAll(typeof(MenuPageV2));
+                }
+                catch (Exception e)
+                {
+                    StaticLogger.LogError("MenuPageV2 Patch Failed: " + e);
+                }
+#if DEBUG
+                mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
+#endif
+            }
+            else if (mainMenuOverhaulEnabled.Value)
+            {
+                StaticLogger.LogWarning("The 'Improved Layout' of the main menu requires the MenuLib mod. Please install it if you wish to use that feature.");
+            }
+
             StaticLogger.LogInfo("Patches Loaded");
             
             try

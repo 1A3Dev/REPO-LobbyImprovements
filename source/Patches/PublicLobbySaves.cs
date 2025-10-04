@@ -1,13 +1,13 @@
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Steamworks;
-using UnityEngine;
 
 namespace LobbyImprovements.Patches
 {
     [HarmonyPatch]
     public class PublicLobbySaves
     {
-        private static bool publicSavesMenuOpen;
+        internal static bool publicSavesMenuOpen;
         private static string currentSaveFileName;
         
         // Server List Menu -> Create New -> Saves Menu
@@ -16,7 +16,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerList_ButtonCreateNew(MenuPageServerList __instance)
         {
-            if (!PluginLoader.savePublicEnabled.Value)
+            if (!PluginLoader.savePublicEnabled.Value || PluginLoader.mainMenuOverhaul)
                 return true;
 
             SemiFunc.MainMenuSetMultiplayer();
@@ -33,7 +33,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void MenuPageSaves_Start(MenuPageSaves __instance)
         {
-            if (SemiFunc.MainMenuIsMultiplayer())
+            if (SemiFunc.MainMenuIsMultiplayer() && !PluginLoader.mainMenuOverhaul)
             {
                 __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
             }
@@ -43,23 +43,39 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(MenuButton), "OnSelect")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool MenuButton_OnSelect(MenuButton __instance)
         {
-            if (!publicSavesMenuOpen || !__instance.menuButtonPopUp)
-                return true;
-
-            if (__instance.menuButtonPopUp.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
+            if (__instance.menuButtonPopUp?.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
             {
-                MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
-                menuPageSaves?.OnNewGame();
-                return !menuPageSaves;
+                if (PluginLoader.mainMenuOverhaul && SemiFunc.MainMenuIsMultiplayer())
+                {
+                    MenuPageV2.NewGame_Internal(__instance);
+                    return false;
+                }
+                
+                if (publicSavesMenuOpen)
+                {
+                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>();
+                    menuPageSaves?.OnNewGame();
+                    return false;
+                }
             }
 
-            if (__instance.menuButtonPopUp.headerText == "Load save?" && __instance.menuButtonPopUp.bodyText == "Load this save file?")
+            if (__instance.menuButtonPopUp?.headerText == "Load save?" && __instance.menuButtonPopUp?.bodyText == "Load this save file?")
             {
-                MenuPageSaves menuPageSaves = MenuManager.instance.currentMenuPage?.GetComponent<MenuPageSaves>();
-                menuPageSaves?.OnLoadGame();
-                return !menuPageSaves;
+                if (PluginLoader.mainMenuOverhaul && SemiFunc.MainMenuIsMultiplayer())
+                {
+                    MenuPageV2.LoadGame_Internal(__instance);
+                    return false;
+                }
+                
+                if (publicSavesMenuOpen)
+                {
+                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>();
+                    menuPageSaves?.OnLoadGame();
+                    return false;
+                }
             }
 
             return true;
@@ -116,11 +132,11 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
         {
-            if (!publicSavesMenuOpen)
+            if (!publicSavesMenuOpen && !PluginLoader.mainMenuOverhaul)
                 return true;
             
-            MenuManager.instance.PageCloseAllExcept(MenuPageIndex.Saves);
-            MenuManager.instance.PageSetCurrent(MenuPageIndex.Saves, __instance.menuPageParent);
+            MenuManager.instance.PageCloseAll();
+            MenuManager.instance.PageOpen(MenuPageIndex.Saves);
             return false;
         }
         
