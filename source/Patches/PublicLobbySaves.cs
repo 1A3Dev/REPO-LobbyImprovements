@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Steamworks;
@@ -9,6 +10,7 @@ namespace LobbyImprovements.Patches
     {
         internal static bool publicSavesMenuOpen;
         private static string currentSaveFileName;
+        private static List<string> currentSaveFileBackups;
         
         // Server List Menu -> Create New -> Saves Menu
         [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
@@ -88,6 +90,7 @@ namespace LobbyImprovements.Patches
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
             currentSaveFileName = null;
+            currentSaveFileBackups = null;
             
             if (!publicSavesMenuOpen || __instance.saveFiles.Count >= 10)
                 return true;
@@ -109,20 +112,17 @@ namespace LobbyImprovements.Patches
             if (!publicSavesMenuOpen)
             {
                 currentSaveFileName = null;
+                currentSaveFileBackups = null;
                 return true;
             }
 
             currentSaveFileName = __instance.currentSaveFileName;
+            currentSaveFileBackups = __instance.currentSaveFileBackups;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
             MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
             menuPageServerListCreateNew.menuPageParent = prevPage;
-            
-            string teamName = StatsManager.instance.SaveFileGetTeamName(currentSaveFileName);
-            if (!string.IsNullOrWhiteSpace(teamName) && teamName != ChatCommands.defaultTeamName)
-                menuPageServerListCreateNew.menuTextInput.textCurrent = teamName;
-            else
-                menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
+            menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
             return false;
         }
         
@@ -185,7 +185,7 @@ namespace LobbyImprovements.Patches
             }
             
             PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + currentSaveFileName);
-            SemiFunc.SaveFileLoad(currentSaveFileName);
+            SemiFunc.SaveFileLoad(currentSaveFileName, currentSaveFileBackups);
             
             return false;
         }

@@ -139,7 +139,8 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			.Concat(EnemyDirector.instance.enemiesDifficulty2)
 			.Concat(EnemyDirector.instance.enemiesDifficulty3)
 			.Where(x => x && !x.name.Contains("Enemy Group - "))
-			.Select(x => x.spawnObjects.FirstOrDefault(o => !o.name.Contains("Director")))
+			.Select(x => x.spawnObjects.FirstOrDefault(o => !o.PrefabName.Contains("Director"))?.Prefab)
+			.Where(x => x)
 			.ToList();
 		
 		yield return StartCoroutine(TakeScreenshotsCoroutine(enemies.Distinct().OrderBy(x => x.name).ToArray(), "Enemies", "Enemies"));
@@ -174,11 +175,11 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			x.name != "Level - Splash Screen"
 		).ToList();
 		
-		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.StartRooms).Where(x => x).Distinct().OrderBy(x => x.name).ToArray(), "StartRoom", "Modules"));
-		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesNormal1.Concat(x.ModulesNormal2).Concat(x.ModulesNormal3)).Where(x => x).Distinct().OrderBy(x => x.name).ToArray(), "Normal", "Modules"));
-		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesPassage1.Concat(x.ModulesPassage2).Concat(x.ModulesPassage3)).Where(x => x).Distinct().OrderBy(x => x.name).ToArray(), "Passage", "Modules"));
-		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesDeadEnd1.Concat(x.ModulesDeadEnd2).Concat(x.ModulesDeadEnd3)).Where(x => x).Distinct().OrderBy(x => x.name).ToArray(), "DeadEnd", "Modules"));
-		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesExtraction1.Concat(x.ModulesExtraction2).Concat(x.ModulesExtraction3)).Where(x => x).Distinct().OrderBy(x => x.name).ToArray(), "Extraction", "Modules"));
+		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.StartRooms).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "StartRoom", "Modules"));
+		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesNormal1.Concat(x.ModulesNormal2).Concat(x.ModulesNormal3)).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "Normal", "Modules"));
+		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesPassage1.Concat(x.ModulesPassage2).Concat(x.ModulesPassage3)).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "Passage", "Modules"));
+		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesDeadEnd1.Concat(x.ModulesDeadEnd2).Concat(x.ModulesDeadEnd3)).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "DeadEnd", "Modules"));
+		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesExtraction1.Concat(x.ModulesExtraction2).Concat(x.ModulesExtraction3)).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "Extraction", "Modules"));
 		
 		ScreenshotEnd();
 	}
@@ -191,7 +192,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		
 		List<ValuableObject> valuables = RunManager.instance.levels
 			.SelectMany(x => x.ValuablePresets.SelectMany(p => p.tiny.Concat(p.small).Concat(p.medium).Concat(p.big).Concat(p.wide).Concat(p.tall).Concat(p.veryTall)))
-			.Select(x => x.GetComponent<ValuableObject>())
+			.Select(x => x.Prefab.GetComponent<ValuableObject>())
 			.Concat(Resources.FindObjectsOfTypeAll<ValuableObject>().Where(item => item.name.StartsWith("Enemy Valuable - ") || item.name.StartsWith("Surplus Valuable - ")))
 			.Where(x => x && x.gameObject)
 			.ToList();
@@ -243,7 +244,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		
 		if (ssType == "Enemies")
 		{
-			return $"{LevelGenerator.Instance.ResourceEnemies}/{targetObject.name}";
+			return $"Enemies/{targetObject.name}";
 		}
 
 		if (ssType == "Items")
@@ -253,7 +254,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 
 		if (ssType == "Modules")
 		{
-			return $"{LevelGenerator.Instance.ResourceParent}/{LevelGenerator.Instance.Level.ResourcePath}/{LevelGenerator.Instance.ResourceModules}/{targetObject.name}";
+			return $"{LevelGenerator.Instance.ResourceParent}/{LevelGenerator.Instance.Level.ResourcePath}/Modules/{targetObject.name}";
 		}
 
 		if (ssType == "Valuables")

@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using Photon.Pun;
 using UnityEngine;
 
@@ -48,7 +49,7 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(SemiFunc), "MenuActionSingleplayerGame")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static bool SemiFunc_MenuActionSingleplayerGame(string saveFileName)
+        private static bool SemiFunc_MenuActionSingleplayerGame(string saveFileName, List<string> saveFileBackups)
         {
             if (!PluginLoader.singleplayerLobbyMenu.Value) return true;
             
@@ -57,7 +58,7 @@ namespace LobbyImprovements.Patches
             if (saveFileName != null)
             {
                 PluginLoader.StaticLogger.LogInfo("Loading save");
-                SemiFunc.SaveFileLoad(saveFileName);
+                SemiFunc.SaveFileLoad(saveFileName, saveFileBackups);
             }
             else
             {
