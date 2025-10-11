@@ -11,30 +11,23 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
 
 ### Features
 
-- Chat
-  - Added some chat commands (the list is further down)
-  - Enabled pasting into chat input
-  - Enabled chat input in singleplayer
+- Debug Commands
+  - Enabled the debug console which is accessible via the grave key (`)
+  - Added
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen
-- Lobby Menu
-  - [Host] Config option to make the lobby menu be shown when loading a singleplayer save file
-  - Fixed a few exceptions when going to the lobby menu in singleplayer
 - Player Name Prefixes
   - This adds name prefixes for the game's developers and testers
     - If you are one of the R.E.P.O testers and don't see the option for the tester prefix please let me know
     - Developer - https://i.gyazo.com/e81a1b64264d50b624e940b46bd9e5cb.png
     - Tester - https://i.gyazo.com/555a9a4e36615d045aea7dce7ca32ca9.png
 - Saves
-  - [Host] Command to rename save files
   - [Host] Config option to disable save file deletion
   - [Host] Config option to enable save files for public lobbies
 - Server List
   - Made searching for a steam lobby id in the search list attempt to join the lobby
   - Ability to paste into the search input (pasting a lobby link works as well)
-- Tester Overlay
-  - An overlay in the bottom right which shows the current room name and game version
 
 Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client side
 

@@ -5,7 +5,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LobbyImprovements.Patches;
 using Photon.Pun;
-using UnityEngine;
 
 namespace LobbyImprovements
 {
@@ -27,9 +26,6 @@ namespace LobbyImprovements
         
         internal static ConfigEntry<bool> saveDeleteEnabled;
         internal static ConfigEntry<bool> savePublicEnabled;
-        
-        internal static ConfigEntry<bool> testerOverlayEnabled;
-        internal static ConfigEntry<bool> testerOverlayModule;
 
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
@@ -121,15 +117,6 @@ namespace LobbyImprovements
                 StaticLogger.LogError("MenuPageLobbySP Patch Failed: " + e);
             }
             
-            // Tester Overlay
-            testerOverlayEnabled = StaticConfig.Bind("Tester Overlay", "Enabled", false, "Should the tester overlay be shown?");
-            testerOverlayEnabled.SettingChanged += (sender, args) =>
-            {
-                SetupTesterOverlay(testerOverlayEnabled.Value);
-            };
-            testerOverlayModule = StaticConfig.Bind("Tester Overlay", "Show Module", true, "Should the name of the module you are in be shown?");
-            SetupTesterOverlay(testerOverlayEnabled.Value);
-            
             moonPhaseUIEnabled = StaticConfig.Bind("Fast Startup", "Moon Phase", true, "Should the moon phase animation be shown?");
             splashScreenUIEnabled = StaticConfig.Bind("Fast Startup", "Splash Screen", true, "Should the splash screen be shown?");
             try
@@ -164,27 +151,10 @@ namespace LobbyImprovements
             StaticLogger.LogInfo("Patches Loaded");
         }
 
-        private static void SetupTesterOverlay(bool _enabled)
-        {
-            GameObject overlayObj = GameObject.Find("TesterOverlay");
-            if (_enabled && overlayObj == null && !Debug.isDebugBuild)
-            {
-                GameObject testerOverlayObj = new GameObject("TesterOverlay");
-                testerOverlayObj.hideFlags = HideFlags.HideAndDontSave;
-                DontDestroyOnLoad(testerOverlayObj);
-                testerOverlayObj.AddComponent<TesterOverlay>();
-            }
-            else if (!_enabled && overlayObj != null)
-            {
-                Destroy(overlayObj);
-            }
-        }
-
 #if DEBUG
         private void OnDestroy()
         {
             harmony?.UnpatchSelf();
-            SetupTesterOverlay(false);
             StaticLogger.LogInfo("Patches Unloaded");
         }
 #endif

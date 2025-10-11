@@ -1,3 +1,10 @@
+# 1.1.3
+
+### CHANGES
+
+- Support for REPO v0.3.0
+  - Enabled the debug console which is accessible via the grave key (`)
+
 # 1.1.2
 
 ### CHANGES
