@@ -154,9 +154,9 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		ScreenshotStart();
 		yield return new WaitForSeconds(2f);
 		
-		List<Item> items = Resources.FindObjectsOfTypeAll<Item>().Where(x => x && x.prefab).ToList();
+		List<Item> items = Resources.FindObjectsOfTypeAll<Item>().Where(x => x && x.prefab.Prefab).ToList();
 		
-		yield return StartCoroutine(TakeScreenshotsCoroutine(items.OrderBy(x => x.name).Select(x => x.prefab).Distinct().ToArray(), "Items", "Items"));
+		yield return StartCoroutine(TakeScreenshotsCoroutine(items.OrderBy(x => x.name).Select(x => x.prefab.Prefab).Distinct().ToArray(), "Items", "Items"));
 
 		ScreenshotEnd();
 	}
