@@ -75,10 +75,10 @@ namespace LobbyImprovements.Patches
             ));
         }
         
-        [HarmonyPatch(typeof(DebugCommandHandler), "CanUseTesterCommands")]
+        [HarmonyPatch(typeof(SemiFunc), "DebugTester")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void DebugCommandHandler_CanUseTesterCommands(ref bool __result)
+        private static void SemiFunc_DebugTester(ref bool __result)
         {
             __result = true;
         }

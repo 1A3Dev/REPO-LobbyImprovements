@@ -235,56 +235,6 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		return new Bounds(go.transform.position, Vector3.one);
 	}
 
-	private string GetObjectResourcePathForMP(string ssType, GameObject targetObject)
-	{
-		if (!SemiFunc.IsMultiplayer())
-		{
-			return targetObject.name;
-		}
-		
-		if (ssType == "Enemies")
-		{
-			return $"Enemies/{targetObject.name}";
-		}
-
-		if (ssType == "Items")
-		{
-			return $"Items/{targetObject.name}";
-		}
-
-		if (ssType == "Modules")
-		{
-			return $"{LevelGenerator.Instance.ResourceParent}/{LevelGenerator.Instance.Level.ResourcePath}/Modules/{targetObject.name}";
-		}
-
-		if (ssType == "Valuables")
-		{
-			string itemPath = "";
-			ValuableObject itemToSpawn = targetObject.GetComponent<ValuableObject>();
-			if (itemToSpawn)
-			{
-				itemPath = itemToSpawn.volumeType switch
-				{
-					ValuableVolume.Type.Tiny => ValuableDirector.instance.tinyPath+"/",
-					ValuableVolume.Type.Small => ValuableDirector.instance.smallPath+"/",
-					ValuableVolume.Type.Medium => ValuableDirector.instance.mediumPath+"/",
-					ValuableVolume.Type.Big => ValuableDirector.instance.bigPath+"/",
-					ValuableVolume.Type.Wide => ValuableDirector.instance.widePath+"/",
-					ValuableVolume.Type.Tall => ValuableDirector.instance.tallPath+"/",
-					ValuableVolume.Type.VeryTall => ValuableDirector.instance.veryTallPath+"/",
-					_ => ""
-				};
-				if (targetObject.name.StartsWith("Enemy Valuable - ") || targetObject.name.StartsWith("Surplus Valuable - "))
-				{
-					itemPath = "";
-				}
-			}
-			return $"{ValuableDirector.instance.resourcePath}{itemPath}{targetObject.name}";
-		}
-
-		return null;
-	}
-
 	private IEnumerator TakeScreenshotsCoroutine(GameObject[] modules, string category, string ssType)
 	{
 		if (!Directory.Exists($"{SavePath}/{ssType}"))
@@ -302,9 +252,6 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			
 			string fileName = $"{SavePath}/{ssType}/{fileNameRaw}.png";
 			if (File.Exists(fileName)) continue;
-
-			string mpSpawnName = GetObjectResourcePathForMP(ssType, module);
-			if (string.IsNullOrWhiteSpace(mpSpawnName)) continue;
 			
 			// Required logic before spawning
 			if (ssType == "Valuables")
@@ -315,16 +262,16 @@ public class ObjectScreenshotTaker : MonoBehaviour
 				}
 			}
 			
-			moduleObject = GameManager.instance.gameMode != 0
-				? PhotonNetwork.InstantiateRoomObject(mpSpawnName, Vector3.zero, Quaternion.identity)
-				: Object.Instantiate(module, Vector3.zero, Quaternion.identity);
+			moduleObject = Instantiate(module, Vector3.zero, Quaternion.identity);
 			yield return null;
 			
 			bool useCollisionsForBounds = false;
+			GameObject boundsObject = moduleObject;
 			if (ssType == "Enemies")
 			{
-				moduleObject.GetComponentInChildren<Enemy>()?.Freeze(7f);
-
+				Enemy enemy = moduleObject.GetComponentInChildren<Enemy>();
+				enemy?.Freeze(7f);
+				
 				if (module.name != "Enemy - Beamer" && module.name != "Enemy - Slow Walker" && module.name != "Enemy - Upscream")
 				{
 					useCollisionsForBounds = true;
@@ -401,7 +348,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 				}
 			}
 
-			Bounds bounds = CalculateBounds(moduleObject, useCollisionsForBounds);
+			Bounds bounds = CalculateBounds(boundsObject, useCollisionsForBounds);
 			float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
 			ScreenshotCamera.orthographic = !module.name.StartsWith("Enemy Valuable - ");
 			ScreenshotCamera.orthographicSize = maxSize * 0.8f;
