@@ -272,17 +272,30 @@ public class ObjectScreenshotTaker : MonoBehaviour
 				Enemy enemy = moduleObject.GetComponentInChildren<Enemy>();
 				enemy?.Freeze(7f);
 				
-				if (module.name != "Enemy - Beamer" && module.name != "Enemy - Slow Walker" && module.name != "Enemy - Upscream")
+				if (module.name == "Enemy - Bomb Thrower")
+				{
+					boundsObject = enemy.Rigidbody.gameObject;
+				}
+				else if (module.name == "Enemy - Elsa")
+				{
+					boundsObject = enemy.gameObject.GetComponent<EnemyElsa>().visualsTransform.gameObject;
+				}
+				else if (module.name == "Enemy - Oogly")
+				{
+					boundsObject = enemy.gameObject.GetComponent<EnemyOogly>().visualTransform.gameObject;
+				}
+				
+				if (module.name != "Enemy - Beamer" && module.name != "Enemy - Shadow" && module.name != "Enemy - Slow Walker" && module.name != "Enemy - Upscream")
 				{
 					useCollisionsForBounds = true;
 				}
 				
 				// Allow time for the spawn animations to finish
-				if (module.name == "Enemy - Floater" || module.name == "Enemy - Runner" || module.name == "Enemy - Slow Walker" || module.name == "Enemy - Tumbler")
+				if (module.name == "Enemy - Bomb Thrower" || module.name == "Enemy - Floater" || module.name == "Enemy - Runner" || module.name == "Enemy - Slow Walker" || module.name == "Enemy - Tumbler")
 				{
 					yield return new WaitForSeconds(1f);
 				}
-				else if (module.name == "Enemy - Hidden" || module.name == "Enemy - Hunter")
+				else if (module.name == "Enemy - Hidden" || module.name == "Enemy - Hunter" || module.name == "Enemy - Oogly")
 				{
 					yield return new WaitForSeconds(5f);
 				}
