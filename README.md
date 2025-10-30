@@ -54,6 +54,6 @@ You can get support in any the following places:
 ### Compatibility
 
 - Supported Game Versions:
-  - v0.2.x
+  - v0.3.x
 - Not Compatible With:
   - N/A
