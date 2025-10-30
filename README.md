@@ -13,7 +13,6 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
 
 - Debug Commands
   - Enabled the debug console which is accessible via the grave key (`)
-  - Added
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen
@@ -35,13 +34,7 @@ Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client s
 
 | Name      | Arguments                                          | Example                   | Description                                   | Host Only |
 | --------- | -------------------------------------------------- | ------------------------- | --------------------------------------------- | --------- |
-| /enemy    | [[string](https://1a3.uk/games/repo/diffs/?tab=6)] | /enemy Ceiling Eye        | Spawns an enemy at the closest level point    | Yes       |
-| /item     | [[string](https://1a3.uk/games/repo/diffs/?tab=4)] | /item Grenade Duct Taped  | Spawns an item at the closest level point     | Yes       |
-| /setcash  | [number]                                           | /setcash 5                | Sets the total cash amount                    | Yes       |
-| /setlevel | [number]                                           | /setlevel 5               | Switches to a different level number          | Yes       |
 | /setname  | [string]                                           | /setname v0.2.1 Test Save | Renames the current save file from "R.E.P.O." | Yes       |
-| /setscene | [[string](https://1a3.uk/games/repo/diffs/?tab=2)] | /setscene random          | Switches to a different level scene           | Yes       |
-| /valuable | [[string](https://1a3.uk/games/repo/diffs/?tab=7)] | /valuable Animal Crate    | Spawns a valuable at the closest level point  | Yes       |
 
 ### Support
 
