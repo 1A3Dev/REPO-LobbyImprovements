@@ -12,7 +12,9 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
 ### Features
 
 - Debug Commands
-  - Enabled the debug console which is accessible via the grave key (`)
+  - Enabled the base-game debug console which is accessible via the grave key (`)
+    - You can scroll up and down with the up/down arrow keys or scroll wheel. Also when an option is selected you can press tab to complete it
+    - You can use middle mouse click to redo the previous command you executed
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen
