@@ -80,7 +80,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void SemiFunc_DebugTester(ref bool __result)
         {
-            __result = true;
+            if(PluginLoader.debugConsole.Value) __result = true;
         }
         
         [HarmonyPatch(typeof(DebugConsoleUI), "Start")]
@@ -88,6 +88,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool DebugConsoleUI_Start(DebugConsoleUI __instance)
         {
+            // Only override if it won't already run
             if (!Debug.isDebugBuild && !SemiFunc.DebugDev())
             {
                 DebugConsoleUI.instance = __instance;

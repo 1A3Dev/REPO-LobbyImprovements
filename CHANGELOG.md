@@ -3,6 +3,8 @@
 ### CHANGES
 
 - Added some useful tips for the debug console to the README
+- Added a config option for whether the debug console is useable
+- Made the splash screen "done" logic still run when the splash screen is automatically skipped
 
 # 1.1.3
 

@@ -30,6 +30,8 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
         
+        internal static ConfigEntry<bool> debugConsole;
+        
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
         
         internal static bool mainMenuOverhaul;
@@ -128,6 +130,8 @@ namespace LobbyImprovements
                 StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
 
+            debugConsole = StaticConfig.Bind("Debug", "Debug Console", true, "Enables the debug console.");
+            
             mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
             {
