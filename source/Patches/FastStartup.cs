@@ -16,13 +16,15 @@ namespace LobbyImprovements.Patches
             __instance.SetState(MoonUI.State.Hide);
         }
         
-        [HarmonyPatch(typeof(RunManager), "Awake")]
+        [HarmonyPatch(typeof(SplashScreen), "Start")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static void RunManager_Awake(RunManager __instance)
+        private static bool SplashScreen_Start(SplashScreen __instance)
         {
-            if (PluginLoader.splashScreenUIEnabled.Value || __instance.levelCurrent != __instance.levelSplashScreen) return;
-            __instance.levelCurrent = __instance.levelMainMenu;
+            if(PluginLoader.splashScreenUIEnabled.Value) return true;
+            
+            __instance.StateSet(SplashScreen.State.Done);
+            return false;
         }
     }
 }
