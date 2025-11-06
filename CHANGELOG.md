@@ -1,3 +1,9 @@
+# 1.1.4
+
+### CHANGES
+
+- Added some useful tips for the debug console to the README
+
 # 1.1.3
 
 ### CHANGES
