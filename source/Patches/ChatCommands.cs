@@ -89,7 +89,7 @@ namespace LobbyImprovements.Patches
         private static bool DebugConsoleUI_Start(DebugConsoleUI __instance)
         {
             // Only override if it won't already run
-            if (!Debug.isDebugBuild && !SemiFunc.DebugDev())
+            if (!SemiFunc.DebugTester() && !SemiFunc.DebugDev())
             {
                 DebugConsoleUI.instance = __instance;
                 return false;

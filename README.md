@@ -15,6 +15,7 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
   - Config option to enable the base-game debug console which is accessible via the grave key (`)
     - You can scroll up and down with the up/down arrow keys or scroll wheel. Also when an option is selected you can press tab to complete it
     - You can use middle mouse click to redo the previous command you executed
+    - Items & valuables spawn at the closest level point whilst enemies spawn in a room nearby
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen
@@ -31,12 +32,6 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
   - Ability to paste into the search input (pasting a lobby link works as well)
 
 Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client side
-
-### Commands
-
-| Name      | Arguments                                          | Example                   | Description                                   | Host Only |
-| --------- | -------------------------------------------------- | ------------------------- | --------------------------------------------- | --------- |
-| /setname  | [string]                                           | /setname v0.2.1 Test Save | Renames the current save file from "R.E.P.O." | Yes       |
 
 ### Support
 
