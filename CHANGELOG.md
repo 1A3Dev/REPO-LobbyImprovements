@@ -1,9 +1,16 @@
+# 1.1.5
+
+### CHANGES
+
+- Added a config option for whether the vanilla debug console is useable
+- Added a config option for whether the vanilla debug commands are useable
+- Updated the README.md
+
 # 1.1.4
 
 ### CHANGES
 
 - Added some useful tips for the debug console to the README
-- Added a config option for whether the debug console is useable
 - Made the splash screen "done" logic still run when the splash screen is automatically skipped
 
 # 1.1.3
