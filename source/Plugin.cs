@@ -31,6 +31,7 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> splashScreenUIEnabled;
         
         internal static ConfigEntry<bool> debugConsole;
+        internal static ConfigEntry<bool> testerCommands;
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
         
@@ -130,7 +131,8 @@ namespace LobbyImprovements
                 StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
 
-            debugConsole = StaticConfig.Bind("Debug", "Debug Console", false, "Enables the vanilla debug console.");
+            debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console. This requires a game restart!");
+            testerCommands = StaticConfig.Bind("Debug Console", "Tester Commands", false, "Enables vanilla debug commands for the debug console. This requires a game restart!");
             
             mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
