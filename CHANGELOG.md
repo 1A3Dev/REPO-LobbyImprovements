@@ -1,3 +1,9 @@
+# 1.1.6
+
+### CHANGES
+
+- Added `/lobbymenu` to return to the lobby menu
+
 # 1.1.5
 
 ### CHANGES
