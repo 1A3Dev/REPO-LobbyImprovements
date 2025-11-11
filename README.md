@@ -33,6 +33,12 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
 
 Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client side
 
+### Commands
+
+| Name       | Arguments | Example    | Description              | Host Only |
+| ---------- | --------- | ---------- | ------------------------ | --------- |
+| /lobbymenu |           | /lobbymenu | Return to the lobby menu | Yes       |
+
 ### Support
 
 You can get support in any the following places:
