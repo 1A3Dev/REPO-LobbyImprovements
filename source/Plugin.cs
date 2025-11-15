@@ -54,23 +54,9 @@ namespace LobbyImprovements
                 StaticLogger.LogError("ChatCommands Patch Failed: " + e);
             }
             
-            // Player Name Prefixes
-            // playerNamePrefixEnabled = StaticConfig.Bind("Name Prefix", "Enabled", true, "Should name prefixes of other players be shown?");
-            // playerNamePrefixEnabled.SettingChanged += (sender, args) =>
-            // {
-            //     foreach (PlayerAvatar playerAvatar in GameDirector.instance.PlayerList)
-            //     {
-            //         PlayerNamePrefix.WorldSpaceUIParent_UpdatePlayerName(playerAvatar);
-            //     }
-            // };
-            
             try
             {
-                harmony.PatchAll(typeof(PlayerNamePrefix));
-                // if (SteamManager.instance)
-                // {
-                //     PlayerNamePrefix.SteamManager_Awake(SteamManager.instance);
-                // }
+                harmony.PatchAll(typeof(PlayerNamePrefix_SteamManager));
             }
             catch (Exception e)
             {
@@ -81,10 +67,10 @@ namespace LobbyImprovements
                     playerNamePrefixSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
                     playerNamePrefixSelected.SettingChanged += (sender, args) =>
                     {
-                        PlayerNamePrefix.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
+                        PlayerNamePrefix_SteamManager.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
                         if (GameManager.Multiplayer())
                         {
-                            PlayerNamePrefix.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", playerNamePrefixSelected.Value);
+                            PlayerNamePrefix_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", playerNamePrefixSelected.Value);
                         }
                     };
                 }

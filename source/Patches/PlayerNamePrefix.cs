@@ -80,7 +80,7 @@ namespace LobbyImprovements.Patches
             }
         }
         
-        private static void WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar _player){
+        public static void WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar _player){
             if(_player?.worldSpaceUIPlayerName){
                 string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(_player);
                 if(!string.IsNullOrWhiteSpace(prefix)){
