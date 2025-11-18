@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using Photon.Pun;
 using Steamworks;
 using UnityEngine;
 
@@ -15,6 +14,8 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void DebugCommandHandler_Start()
         {
+            if(!Debug.isDebugBuild) DebugCommandHandler.instance.debugOverlay = PluginLoader.testerOverlayEnabled.Value;
+            
             DebugCommandHandler.instance.Register(new DebugCommandHandler.ChatCommand(
                 name: "screenshot",
                 description: "Screenshot all enemies, items, modules, or valuables in the current room.",
@@ -86,19 +87,15 @@ namespace LobbyImprovements.Patches
             ));
         }
         
-        [HarmonyPatch(typeof(SteamManager), "Awake")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void SteamManager_Awake(SteamManager __instance){
-            List<string> developerSteamIDs = [
-                "76561198286895332", // 1A3
-                "76561199523762804" // 1A3Test
-            ];
-            if(!__instance.developerMode && PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())){
-                __instance.developerMode = true;
-                Debug.Log($"DEVELOPER MODE: {SteamClient.Name.ToUpper()} (MODDED)");
-            }
-        }
+        // [HarmonyPatch(typeof(SteamManager), "Awake")]
+        // [HarmonyPostfix]
+        // [HarmonyWrapSafe]
+        // private static void SteamManager_Awake(SteamManager __instance){
+        //     if(!__instance.developerMode && PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())){
+        //         __instance.developerMode = true;
+        //         Debug.Log($"DEVELOPER MODE: {SteamClient.Name.ToUpper()} (MODDED)");
+        //     }
+        // }
         
         [HarmonyPatch(typeof(SemiFunc), "DebugTester")]
         [HarmonyPostfix]

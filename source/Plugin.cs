@@ -6,6 +6,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LobbyImprovements.Patches;
 using Photon.Pun;
+using UnityEngine;
 
 namespace LobbyImprovements
 {
@@ -41,8 +42,11 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> saveDeleteEnabled;
         internal static ConfigEntry<bool> savePublicEnabled;
 
+        
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
+        
+        internal static ConfigEntry<bool> testerOverlayEnabled;
         
         internal static ConfigEntry<bool> debugConsole;
         internal static ConfigEntry<bool> testerCommands;
@@ -133,6 +137,23 @@ namespace LobbyImprovements
 
             debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console. This requires a game restart!");
             testerCommands = StaticConfig.Bind("Debug Console", "Tester Commands", false, "Enables vanilla debug commands for the debug console. This requires a game restart!");
+            
+            testerOverlayEnabled = StaticConfig.Bind("Tester Overlay", "Enabled", false, "Should the tester overlay be shown?");
+            testerOverlayEnabled.SettingChanged += (sender, args) =>
+            {
+                if (!Debug.isDebugBuild && DebugCommandHandler.instance)
+                {
+                    DebugCommandHandler.instance.debugOverlay = testerOverlayEnabled.Value;
+                }
+            };
+            try
+            {
+                harmony.PatchAll(typeof(TesterOverlayPatches));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("TesterOverlay Patch Failed: " + e);
+            }
             
             mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
