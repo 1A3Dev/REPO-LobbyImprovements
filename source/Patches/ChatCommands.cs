@@ -113,6 +113,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool DebugConsoleUI_Start(DebugConsoleUI __instance)
         {
+            // Override keybind if set to something else
+            KeyCode toggleKey = PluginLoader.debugConsoleKeybind.Value.MainKey;
+            if(toggleKey != KeyCode.None && toggleKey != KeyCode.BackQuote){
+                __instance.toggleKey = toggleKey;
+            }
+
             // Only override if it won't already run
             if (PluginLoader.debugConsole.Value && !SemiFunc.DebugTester() && !SemiFunc.DebugDev())
             {

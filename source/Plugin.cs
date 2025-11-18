@@ -5,6 +5,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LobbyImprovements.Patches;
 using Photon.Pun;
+using UnityEngine;
 
 namespace LobbyImprovements
 {
@@ -32,6 +33,7 @@ namespace LobbyImprovements
         
         internal static ConfigEntry<bool> debugConsole;
         internal static ConfigEntry<bool> testerCommands;
+        internal static ConfigEntry<KeyboardShortcut> debugConsoleKeybind;
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
         
@@ -119,6 +121,12 @@ namespace LobbyImprovements
 
             debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console. This requires a game restart!");
             testerCommands = StaticConfig.Bind("Debug Console", "Tester Commands", false, "Enables vanilla debug commands for the debug console. This requires a game restart!");
+            debugConsoleKeybind = StaticConfig.Bind("Debug Console", "Keybind", new KeyboardShortcut(KeyCode.BackQuote));
+            debugConsoleKeybind.SettingChanged += (sender, args) => {
+                if(DebugConsoleUI.instance){
+                    DebugConsoleUI.instance.toggleKey = debugConsoleKeybind.Value.MainKey != KeyCode.None ? debugConsoleKeybind.Value.MainKey : KeyCode.BackQuote;
+                }
+            };
             
             mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
