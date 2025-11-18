@@ -94,7 +94,7 @@ namespace LobbyImprovements.Patches
                 "76561198286895332", // 1A3
                 "76561199523762804" // 1A3Test
             ];
-            if(!__instance.developerMode && developerSteamIDs.Contains(SteamClient.SteamId.ToString())){
+            if(!__instance.developerMode && PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())){
                 __instance.developerMode = true;
                 Debug.Log($"DEVELOPER MODE: {SteamClient.Name.ToUpper()} (MODDED)");
             }

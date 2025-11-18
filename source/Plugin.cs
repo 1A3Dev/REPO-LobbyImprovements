@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -12,6 +13,19 @@ namespace LobbyImprovements
     [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.SoftDependency)]
     internal class PluginLoader : BaseUnityPlugin
     {
+        internal static List<string> modDevSteamIDs = [
+            "76561198286895332", // 1A3
+            "76561199523762804" // 1A3Test
+        ];
+        
+        internal static Dictionary<string, string> namePrefixMap = new() {
+            { "developer", "<color=#ff0062>[DEV]</color> " },
+            { "tester", "<color=#ff8b00>[TESTER]</color> " }
+        };
+        
+        internal static Dictionary<string, string> nameSuffixMap = new() {
+        };
+        
         private readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
 
         private static bool initialized;

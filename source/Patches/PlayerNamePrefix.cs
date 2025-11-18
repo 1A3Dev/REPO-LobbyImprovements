@@ -247,13 +247,25 @@ namespace LobbyImprovements.Patches
             }
             
             List<string> prefixes = GetPrefixDataForSteamId(playerAvatar.steamID);
-            if(prefixes.Contains("developer") && selectedPrefix == "developer"){
-                prefix = "<color=#ff0062>[DEV]</color> ";
-            }else if (prefixes.Contains("tester") && selectedPrefix == "tester"){
-                prefix = "<color=#ff8b00>[TESTER]</color> ";
+            
+            // Check if the selected prefix has a prefix string
+            if(string.IsNullOrWhiteSpace(selectedPrefix) || !PluginLoader.namePrefixMap.TryGetValue(selectedPrefix, out prefix)){
+                // If mod dev and no prefix is set, then default to the first allowed
+                if(prefixes.Count > 0 && PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())){
+                    PluginLoader.namePrefixMap.TryGetValue(prefixes.First(), out prefix);
+                    prefix += "<color=#7289da>[!]</color> "; // Indicate that a default prefix is being used
+                }
+            }
+            // Check if the selected prefix has a suffix string
+            if(string.IsNullOrWhiteSpace(selectedPrefix) || !PluginLoader.nameSuffixMap.TryGetValue(selectedPrefix, out suffix)){
+                // If mod dev and no suffix is set, then default to the first allowed
+                if(prefixes.Count > 0 && PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())){
+                    PluginLoader.nameSuffixMap.TryGetValue(prefixes.First(), out suffix);
+                    suffix += " <color=#7289da>[!]</color>"; // Indicate that a default prefix is being used
+                }
             }
 
-            return string.IsNullOrWhiteSpace(prefix) ? null : $"{prefix}{Regex.Replace(playerAvatar.playerName ?? "", "<.*?>", string.Empty)}{suffix}";
+            return string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(suffix) ? null : $"{prefix}{Regex.Replace(playerAvatar.playerName ?? "", "<.*?>", string.Empty)}{suffix}";
         }
 
         public static void PhotonSetCustomProperty(Player photonPlayer, object key, object value){
