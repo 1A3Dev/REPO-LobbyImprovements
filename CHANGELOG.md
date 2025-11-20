@@ -1,3 +1,11 @@
+# 1.1.7
+
+### CHANGES
+
+- Re-enabled debug overlay config option
+- Changed lobby menu command fix to use alternate method
+- Cleaned up player name prefix logic
+
 # 1.1.6
 
 ### CHANGES
