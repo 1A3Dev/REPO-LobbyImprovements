@@ -2,7 +2,7 @@
 
 ### CHANGES
 
-- Re-enabled debug overlay config option
+- Added back the config option to enable the tester overlay
 - Changed lobby menu command fix to use alternate method
 - Cleaned up player name prefix logic
 
