@@ -9,8 +9,6 @@ namespace LobbyImprovements.Patches
     public class PublicLobbySaves
     {
         internal static bool publicSavesMenuOpen;
-        private static string currentSaveFileName;
-        private static List<string> currentSaveFileBackups;
         
         // Server List Menu -> Create New -> Saves Menu
         [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
@@ -89,16 +87,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
-            currentSaveFileName = null;
-            currentSaveFileBackups = null;
-            
             if (!publicSavesMenuOpen || __instance.saveFiles.Count >= 10)
                 return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
             MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
             menuPageServerListCreateNew.menuPageParent = prevPage;
-            
             menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
             return false;
         }
@@ -109,19 +103,12 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnLoadGame(MenuPageSaves __instance)
         {
-            if (!publicSavesMenuOpen)
-            {
-                currentSaveFileName = null;
-                currentSaveFileBackups = null;
-                return true;
-            }
-
-            currentSaveFileName = __instance.currentSaveFileName;
-            currentSaveFileBackups = __instance.currentSaveFileBackups;
+            if(!publicSavesMenuOpen) return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
             MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
             menuPageServerListCreateNew.menuPageParent = prevPage;
+            menuPageServerListCreateNew.saveFileName = __instance.currentSaveFileName;
             menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
             return false;
         }
@@ -156,74 +143,12 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Cache the initial value of connectRandom when the lobby is created
-        private static bool connectRandomCached;
-        
-        [HarmonyPatch(typeof(GameManager), "SetConnectRandom")]
+        [HarmonyPatch(typeof(StatsManager), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void GameManager_SetConnectRandom(bool _connectRandom)
+        private static void StatsManager_Awake_Postfix(StatsManager __instance)
         {
-            connectRandomCached = GameManager.instance.connectRandom;
-        }
-        
-        // Prevent NetworkConnect.OnJoinedRoom from creating an extra save file
-        [HarmonyPatch(typeof(SemiFunc), "SaveFileCreate")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool SemiFunc_SaveFileCreate(NetworkConnect __instance)
-        {
-            if (!connectRandomCached)
-                return true;
-
-            // If creating a new save file, use the network server name as the team name
-            if (string.IsNullOrWhiteSpace(currentSaveFileName))
-            {
-                if (!string.IsNullOrWhiteSpace(DataDirector.instance.networkServerName))
-                    StatsManager.instance.teamName = DataDirector.instance.networkServerName;
-                return true;
-            }
-            
-            PluginLoader.StaticLogger.LogInfo("[Public Lobby] Loading Save File: " + currentSaveFileName);
-            SemiFunc.SaveFileLoad(currentSaveFileName, currentSaveFileBackups);
-            
-            return false;
-        }
-        
-        // Override logic that prevents saving when connectRandom is true
-        [HarmonyPatch(typeof(SemiFunc), "SaveFileSave")]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void SemiFunc_SaveFileSave()
-        {
-            if (!PluginLoader.savePublicEnabled.Value || !GameManager.instance.connectRandom)
-                return;
-            
-            StatsManager.instance.SaveFileSave();
-        }
-        
-        [HarmonyPatch(typeof(DataDirector), "SaveDeleteCheck")]
-        [HarmonyPrefix]
-        [HarmonyPriority(Priority.First)]
-        [HarmonyWrapSafe]
-        private static void DataDirector_SaveDeleteCheck_Prefix()
-        {
-            if (!PluginLoader.savePublicEnabled.Value || !connectRandomCached)
-                return;
-            
-            GameManager.instance.connectRandom = false;
-        }
-        
-        [HarmonyPatch(typeof(DataDirector), "SaveDeleteCheck")]
-        [HarmonyPostfix]
-        [HarmonyPriority(Priority.Last)]
-        [HarmonyWrapSafe]
-        private static void DataDirector_SaveDeleteCheck_Postfix()
-        {
-            if (!connectRandomCached)
-                return;
-            
-            GameManager.instance.connectRandom = true;
+            __instance.savePublicLobbies = PluginLoader.savePublicEnabled.Value;
         }
     }
 }

@@ -97,6 +97,10 @@ namespace LobbyImprovements
             
             saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "Should saves be automatically deleted when everyone dies?");
             savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "Should public lobbies have save files?");
+            savePublicEnabled.SettingChanged += (sender, args) =>
+            {
+                StatsManager.instance.savePublicLobbies = savePublicEnabled.Value;
+            };
             try
             {
                 harmony.PatchAll(typeof(PublicLobbySaves));
