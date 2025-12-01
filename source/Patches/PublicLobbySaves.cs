@@ -148,7 +148,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void StatsManager_Awake_Postfix(StatsManager __instance)
         {
-            __instance.savePublicLobbies = PluginLoader.savePublicEnabled.Value;
+            __instance.savePublicLobbies = PluginLoader.savePublicEnabled.Value || PluginLoader.mainMenuOverhaulEnabled.Value;
         }
     }
 }

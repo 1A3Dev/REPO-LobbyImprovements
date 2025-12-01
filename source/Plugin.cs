@@ -99,7 +99,7 @@ namespace LobbyImprovements
             savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "Should public lobbies have save files?");
             savePublicEnabled.SettingChanged += (sender, args) =>
             {
-                StatsManager.instance.savePublicLobbies = savePublicEnabled.Value;
+                if(StatsManager.instance) StatsManager.instance.savePublicLobbies = savePublicEnabled.Value || mainMenuOverhaulEnabled.Value;
             };
             try
             {
@@ -169,6 +169,10 @@ namespace LobbyImprovements
             mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
             {
+                mainMenuOverhaulEnabled.SettingChanged += (sender, args) =>
+                {
+                    if(StatsManager.instance) StatsManager.instance.savePublicLobbies = savePublicEnabled.Value || mainMenuOverhaulEnabled.Value;
+                };
                 try
                 {
                     harmony.PatchAll(typeof(MenuPageV2));
