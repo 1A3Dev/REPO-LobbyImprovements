@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using Photon.Pun;
 using Steamworks;
 using UnityEngine;
 
@@ -15,6 +14,8 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void DebugCommandHandler_Start()
         {
+            if(!Debug.isDebugBuild) DebugCommandHandler.instance.debugOverlay = PluginLoader.testerOverlayEnabled.Value;
+            
             DebugCommandHandler.instance.Register(new DebugCommandHandler.ChatCommand(
                 name: "screenshot",
                 description: "Screenshot all enemies, items, modules, or valuables in the current room.",
@@ -75,10 +76,9 @@ namespace LobbyImprovements.Patches
             DebugCommandHandler.instance.Register(new DebugCommandHandler.ChatCommand(
                 name: "lobbymenu",
                 description: "Return to the lobby menu. This may cause issues!",
-                isEnabled: () => SemiFunc.IsMasterClient() && DebugCommandHandler.instance.IsInGame() && !SemiFunc.RunIsLobbyMenu(),
+                isEnabled: () => SemiFunc.IsMasterClientOrSingleplayer() && DebugCommandHandler.instance.IsInGame(),
                 debugOnly: false,
                 execute: (isDebugConsole, args) => {
-                    NetworkManager.instance.DestroyAll(); // Fixes objects spawned in previous levels being respawned for late joiners
                     RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.LobbyMenu);
                     Debug.Log("Command Used: /level lobby menu");
                     DebugCommandHandler.instance.CommandSuccessEffect();
@@ -86,19 +86,31 @@ namespace LobbyImprovements.Patches
             ));
         }
         
-        [HarmonyPatch(typeof(SteamManager), "Awake")]
-        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RunManager), "RestartScene")]
+        [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static void SteamManager_Awake(SteamManager __instance){
-            List<string> developerSteamIDs = [
-                "76561198286895332", // 1A3
-                "76561199523762804" // 1A3Test
-            ];
-            if(!__instance.developerMode && developerSteamIDs.Contains(SteamClient.SteamId.ToString())){
-                __instance.developerMode = true;
-                Debug.Log($"DEVELOPER MODE: {SteamClient.Name.ToUpper()} (MODDED)");
+        private static void RunManager_RestartScene(RunManager __instance){
+            if(__instance.restarting && !__instance.restartingDone){
+                if(GameDirector.instance && GameDirector.instance.PlayerList.All(p => p.outroDone)){
+                    if(!__instance.lobbyJoin && !__instance.waitToChangeScene){
+                        // Fix objects spawned in previous levels being respawned for late joiners
+                        if(SemiFunc.RunIsLobbyMenu()){
+                            NetworkManager.instance.DestroyAll();
+                        }
+                    }
+                }
             }
         }
+        
+        // [HarmonyPatch(typeof(SteamManager), "Awake")]
+        // [HarmonyPostfix]
+        // [HarmonyWrapSafe]
+        // private static void SteamManager_Awake(SteamManager __instance){
+        //     if(!__instance.developerMode && PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())){
+        //         __instance.developerMode = true;
+        //         Debug.Log($"DEVELOPER MODE: {SteamClient.Name.ToUpper()} (MODDED)");
+        //     }
+        // }
         
         [HarmonyPatch(typeof(SemiFunc), "DebugTester")]
         [HarmonyPostfix]

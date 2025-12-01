@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -13,6 +14,19 @@ namespace LobbyImprovements
     [BepInDependency("nickklmao.menulib", BepInDependency.DependencyFlags.SoftDependency)]
     internal class PluginLoader : BaseUnityPlugin
     {
+        internal static List<string> modDevSteamIDs = [
+            "76561198286895332", // 1A3
+            "76561199523762804" // 1A3Test
+        ];
+        
+        internal static Dictionary<string, string> namePrefixMap = new() {
+            { "developer", "<color=#ff0062>[DEV]</color> " },
+            { "tester", "<color=#ff8b00>[TESTER]</color> " }
+        };
+        
+        internal static Dictionary<string, string> nameSuffixMap = new() {
+        };
+        
         private readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
 
         private static bool initialized;
@@ -28,8 +42,11 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> saveDeleteEnabled;
         internal static ConfigEntry<bool> savePublicEnabled;
 
+        
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
+        
+        internal static ConfigEntry<bool> testerOverlayEnabled;
         
         internal static ConfigEntry<bool> debugConsole;
         internal static ConfigEntry<bool> testerCommands;
@@ -127,6 +144,23 @@ namespace LobbyImprovements
                     DebugConsoleUI.instance.toggleKey = debugConsoleKeybind.Value.MainKey != KeyCode.None ? debugConsoleKeybind.Value.MainKey : KeyCode.BackQuote;
                 }
             };
+            
+            testerOverlayEnabled = StaticConfig.Bind("Tester Overlay", "Enabled", false, "Should the tester overlay be shown?");
+            testerOverlayEnabled.SettingChanged += (sender, args) =>
+            {
+                if (!Debug.isDebugBuild && DebugCommandHandler.instance)
+                {
+                    DebugCommandHandler.instance.debugOverlay = testerOverlayEnabled.Value;
+                }
+            };
+            try
+            {
+                harmony.PatchAll(typeof(TesterOverlayPatches));
+            }
+            catch (Exception e)
+            {
+                StaticLogger.LogError("TesterOverlay Patch Failed: " + e);
+            }
             
             mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))

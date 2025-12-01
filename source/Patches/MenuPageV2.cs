@@ -21,17 +21,6 @@ namespace LobbyImprovements.Patches
         internal static void NewGame_Internal(MenuButton __instance)
         {
             var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
-            // repoPage.AddElementToScrollView(scrollView =>
-            // {
-            //     var repoButton = MenuAPI.CreateREPOButton("Singleplayer", () =>
-            //     {
-            //         SemiFunc.MainMenuSetSingleplayer();
-            //         PublicLobbySaves.publicSavesMenuOpen = false;
-            //         MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-            //         menuPageSaves?.OnNewGame();
-            //     }, parent: scrollView, localPosition: Vector2.zero);
-            //     return repoButton.rectTransform;
-            // });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Private", () =>
@@ -44,7 +33,7 @@ namespace LobbyImprovements.Patches
             });
             repoPage.AddElementToScrollView(scrollView =>
             {
-                var repoButton = MenuAPI.CreateREPOButton("Public", () =>
+                var repoButton = MenuAPI.CreateREPOButton("Public (Server List)", () =>
                 {
                     PublicLobbySaves.publicSavesMenuOpen = true;
                     MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
@@ -52,6 +41,20 @@ namespace LobbyImprovements.Patches
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
             });
+            // repoPage.AddElementToScrollView(scrollView =>
+            // {
+            //     var repoButton = MenuAPI.CreateREPOButton("Public (Random)", () =>
+            //     {
+            //         PublicLobbySaves.publicSavesMenuOpen = true;
+            //         RunManager.instance.ResetProgress();
+            //         StatsManager.instance.saveFileCurrent = "";
+            //         GameManager.instance.SetConnectRandom(true);
+            //         GameManager.instance.localTest = false;
+            //         RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
+            //         RunManager.instance.lobbyJoin = true;
+            //     }, parent: scrollView, localPosition: Vector2.zero);
+            //     return repoButton.rectTransform;
+            // });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Back", () =>
@@ -66,17 +69,6 @@ namespace LobbyImprovements.Patches
         internal static void LoadGame_Internal(MenuButton __instance)
         {
             var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
-            // repoPage.AddElementToScrollView(scrollView =>
-            // {
-            //     var repoButton = MenuAPI.CreateREPOButton("Singleplayer", () =>
-            //     {
-            //         SemiFunc.MainMenuSetSingleplayer();
-            //         PublicLobbySaves.publicSavesMenuOpen = false;
-            //         MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
-            //         menuPageSaves?.OnLoadGame();
-            //     }, parent: scrollView, localPosition: Vector2.zero);
-            //     return repoButton.rectTransform;
-            // });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Private", () =>
@@ -89,7 +81,7 @@ namespace LobbyImprovements.Patches
             });
             repoPage.AddElementToScrollView(scrollView =>
             {
-                var repoButton = MenuAPI.CreateREPOButton("Public", () =>
+                var repoButton = MenuAPI.CreateREPOButton("Public (Server List)", () =>
                 {
                     PublicLobbySaves.publicSavesMenuOpen = true;
                     MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
@@ -97,6 +89,20 @@ namespace LobbyImprovements.Patches
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
             });
+            // repoPage.AddElementToScrollView(scrollView =>
+            // {
+            //     var repoButton = MenuAPI.CreateREPOButton("Public (Random)", () =>
+            //     {
+            //         PublicLobbySaves.publicSavesMenuOpen = true;
+            //         RunManager.instance.ResetProgress();
+            //         SemiFunc.SaveFileLoad(StatsManager.instance.saveFileCurrent, null);
+            //         GameManager.instance.SetConnectRandom(true);
+            //         GameManager.instance.localTest = false;
+            //         RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
+            //         RunManager.instance.lobbyJoin = true;
+            //     }, parent: scrollView, localPosition: Vector2.zero);
+            //     return repoButton.rectTransform;
+            // });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Back", () =>
