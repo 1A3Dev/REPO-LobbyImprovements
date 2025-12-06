@@ -2,7 +2,7 @@
 
 ### CHANGES
 
-- Made splash screen automatic skip load faster
+- Made main menu load quicker if the splash screen is automatically skipped
 
 # 1.1.7
 
