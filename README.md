@@ -18,7 +18,7 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
     - Items & valuables spawn at the closest level point whilst enemies spawn in a room nearby
 - Fast Startup
   - Config option to skip moon phase animation
-  - Config option to skip splash screen
+  - Config option to skip splash screen (This only activates after you've seen the full splash screen at least once)
 - Player Name Prefixes
   - This adds name prefixes for the game's developers and testers
     - If you are one of the R.E.P.O testers and don't see the option for the tester prefix please let me know
