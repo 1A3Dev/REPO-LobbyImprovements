@@ -1,3 +1,9 @@
+# 1.1.8
+
+### CHANGES
+
+- Made splash screen automatic skip faster
+
 # 1.1.7
 
 ### CHANGES
