@@ -17,17 +17,13 @@ namespace LobbyImprovements.Patches
             __instance.SetState(MoonUI.State.Hide);
         }
         
-        [HarmonyPatch(typeof(LevelGenerator), "Start")]
+        [HarmonyPatch(typeof(SemiFunc), nameof(SemiFunc.SplashScreenSkip))]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static void LevelGenerator_Start()
+        private static void SemiFunc_SplashScreenSkip(ref bool forceSkip)
         {
             if(PluginLoader.splashScreenUIEnabled.Value) return;
-            
-            if(SemiFunc.IsSplashScreen() && RunManager.instance && DataDirector.instance && DataDirector.instance.SettingValueFetch(DataDirector.Setting.SplashScreenCount) == 1){
-                RunManager.instance.levelCurrent = RunManager.instance.levelMainMenu;
-                PluginLoader.StaticLogger.LogInfo("[Splash Screen] Automatically Skipped");
-            }
+            forceSkip = true;
         }
     }
 }
