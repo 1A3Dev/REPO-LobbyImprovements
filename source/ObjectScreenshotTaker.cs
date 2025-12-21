@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Photon.Pun;
+using Newtonsoft.Json;
+using Steamworks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace LobbyImprovements;
 
 public class ObjectScreenshotTaker : MonoBehaviour
 {
 	private readonly string SavePath = "Screenshots";
+	private readonly string ImageMapFileName = "images.json";
 	
 	internal static ObjectScreenshotTaker instance;
 	internal bool isTakingScreenshots;
@@ -31,6 +34,8 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		Valuables
 	}
 	private ScreenshotTypes screenshotType = ScreenshotTypes.None;
+
+	private Dictionary<string, Dictionary<string, string>> nameGuids = new();
 	
 	private void Awake()
 	{
@@ -73,6 +78,12 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		
 		if (!Directory.Exists(SavePath))
 			Directory.CreateDirectory(SavePath);
+		
+		string jsonPath = Path.Combine(SavePath, ImageMapFileName);
+		if(File.Exists(jsonPath)){
+			string json = File.ReadAllText(jsonPath);
+			nameGuids = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(json) ?? new Dictionary<string, Dictionary<string, string>>();
+		}
 		
 		// Disable level objects
 		GameObject startRoom = LevelGenerator.Instance.LevelParent.GetComponentInChildren<StartRoom>().gameObject;
@@ -240,6 +251,8 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		if (!Directory.Exists($"{SavePath}/{ssType}"))
 			Directory.CreateDirectory($"{SavePath}/{ssType}");
 
+		bool updatedNameGuids = false;
+		
 		foreach (var module in modules)
 		{
 			if (!module || (ssType == "Modules" && module.name.StartsWith("Start Room - Shop"))) continue;
@@ -252,6 +265,24 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			
 			string fileName = $"{SavePath}/{ssType}/{fileNameRaw}.png";
 			if (File.Exists(fileName)) continue;
+			
+			// Randomly generated file names for tester builds
+			if(SteamApps.CurrentBetaName == "tester"){
+				if(!nameGuids.ContainsKey(ssType)) nameGuids[ssType] = new();
+				if(nameGuids[ssType].TryGetValue(fileNameRaw, out var guid)){
+					if(File.Exists(guid)) continue;
+					fileName = $"{SavePath}/{ssType}/{guid}.png";
+				}else{
+					string newGuid = System.Guid.NewGuid().ToString();
+					fileName = $"{SavePath}/{ssType}/{newGuid}.png";
+					while(File.Exists(fileName)){
+						newGuid = System.Guid.NewGuid().ToString();
+						fileName = $"{SavePath}/{ssType}/{newGuid}.png";
+					}
+					nameGuids[ssType][fileNameRaw] = newGuid;
+					updatedNameGuids = true;
+				}
+			}
 			
 			// Required logic before spawning
 			if (ssType == "Valuables")
@@ -324,7 +355,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 
 				useCollisionsForBounds = true;
 				
-				if (module.name == "Item Melee Baseball Bat" || module.name == "Item Melee Frying Pan")
+				if (module.name == "Item Melee Baseball Bat" || module.name == "Item Melee Frying Pan" || module.name.StartsWith("Item WalkieTalkie"))
 				{
 					yield return new WaitForSeconds(1f);
 				}
@@ -370,7 +401,13 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			{
 				isoDirection = Vector3.forward;
 			}
-			else if ((ssType == "Items" && module.name.StartsWith("Item Upgrade ")) || ssType == "Valuables")
+			else if (ssType == "Items")
+			{
+				if(module.name.StartsWith("Item Upgrade ") || module.name.StartsWith("Item WalkieTalkie")){
+					isoDirection = new Vector3(1, 1, 1).normalized;
+				}
+			}
+			else if (ssType == "Valuables")
 			{
 				isoDirection = new Vector3(1, 1, 1).normalized;
 			}
@@ -431,6 +468,11 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			Destroy(moduleObject);
 			
 			if (Time.timeScale == 0f) Time.timeScale = 1f;
+		}
+
+		if(updatedNameGuids){
+			string outputJson = JsonConvert.SerializeObject(nameGuids, Formatting.Indented);
+			File.WriteAllText(Path.Combine(SavePath, ImageMapFileName), outputJson);
 		}
 	}
 
