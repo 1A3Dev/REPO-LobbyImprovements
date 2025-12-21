@@ -1,3 +1,9 @@
+# 1.1.8
+
+### CHANGES
+
+- Made main menu load quicker if the splash screen is automatically skipped
+
 # 1.1.7
 
 ### CHANGES

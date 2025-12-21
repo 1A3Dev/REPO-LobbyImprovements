@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System;
+using HarmonyLib;
 using UnityEngine.SceneManagement;
 
 namespace LobbyImprovements.Patches
@@ -16,15 +17,17 @@ namespace LobbyImprovements.Patches
             __instance.SetState(MoonUI.State.Hide);
         }
         
-        [HarmonyPatch(typeof(SplashScreen), "Start")]
+        [HarmonyPatch(typeof(LevelGenerator), "Start")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static bool SplashScreen_Start(SplashScreen __instance)
+        private static void LevelGenerator_Start()
         {
-            if(PluginLoader.splashScreenUIEnabled.Value) return true;
+            if(PluginLoader.splashScreenUIEnabled.Value) return;
             
-            __instance.StateSet(SplashScreen.State.Done);
-            return false;
+            if(SemiFunc.IsSplashScreen() && RunManager.instance && DataDirector.instance && DataDirector.instance.SettingValueFetch(DataDirector.Setting.SplashScreenCount) == 1){
+                RunManager.instance.levelCurrent = RunManager.instance.levelMainMenu;
+                PluginLoader.StaticLogger.LogInfo("[Splash Screen] Automatically Skipped");
+            }
         }
     }
 }
