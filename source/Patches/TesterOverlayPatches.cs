@@ -13,16 +13,4 @@ public class TesterOverlayPatches
 	{
 		return Debug.isDebugBuild || SemiFunc.DebugDev();
 	}
-	
-	[HarmonyPatch(typeof(ItemWalkieBox), "OutOfStore")]
-	[HarmonyPrefix]
-	[HarmonyWrapSafe]
-	private static bool ItemWalkieBox_OutOfStore(ItemWalkieBox __instance){
-		if(ObjectScreenshotTaker.instance && ObjectScreenshotTaker.instance.isTakingScreenshots){
-			__instance.walkiesSpawned = true;
-			return false;
-		}
-
-		return true;
-	}
 }

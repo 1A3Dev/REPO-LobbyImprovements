@@ -49,7 +49,6 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> testerOverlayEnabled;
         
         internal static ConfigEntry<bool> debugConsole;
-        internal static ConfigEntry<bool> testerCommands;
         internal static ConfigEntry<KeyboardShortcut> debugConsoleKeybind;
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
@@ -140,8 +139,7 @@ namespace LobbyImprovements
                 StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
 
-            debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console. This requires a game restart!");
-            testerCommands = StaticConfig.Bind("Debug Console", "Tester Commands", false, "Enables vanilla debug commands for the debug console. This requires a game restart!");
+            debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console.");
             debugConsoleKeybind = StaticConfig.Bind("Debug Console", "Keybind", new KeyboardShortcut(KeyCode.BackQuote));
             debugConsoleKeybind.SettingChanged += (sender, args) => {
                 if(DebugConsoleUI.instance){

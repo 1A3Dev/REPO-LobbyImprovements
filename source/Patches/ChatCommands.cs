@@ -117,24 +117,29 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void SemiFunc_DebugTester(ref bool __result)
         {
-            if(PluginLoader.debugConsole.Value && PluginLoader.testerCommands.Value) __result = true;
+            if (!PluginLoader.debugConsole.Value) return;
+            __result = true;
         }
         
-        [HarmonyPatch(typeof(DebugConsoleUI), "Start")]
-        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DebugConsoleUI), "Awake")]
+        [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static bool DebugConsoleUI_Start(DebugConsoleUI __instance)
+        private static void DebugConsoleUI_Awake(DebugConsoleUI __instance)
         {
             // Override keybind if set to something else
             KeyCode toggleKey = PluginLoader.debugConsoleKeybind.Value.MainKey;
             if(toggleKey != KeyCode.None && toggleKey != KeyCode.BackQuote){
                 __instance.toggleKey = toggleKey;
             }
-
-            // Only override if it won't already run
-            if (PluginLoader.debugConsole.Value && !SemiFunc.DebugTester() && !SemiFunc.DebugDev())
-            {
-                DebugConsoleUI.instance = __instance;
+        }
+        
+        // Fix walkie talkie box being replaced
+        [HarmonyPatch(typeof(ItemWalkieBox), "OutOfStore")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static bool ItemWalkieBox_OutOfStore(ItemWalkieBox __instance){
+            if(ObjectScreenshotTaker.instance && ObjectScreenshotTaker.instance.isTakingScreenshots){
+                __instance.walkiesSpawned = true;
                 return false;
             }
 
