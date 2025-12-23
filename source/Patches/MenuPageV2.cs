@@ -368,5 +368,17 @@ namespace LobbyImprovements.Patches
         {
             return !MenuManager.instance || MenuManager.instance.currentMenuPageIndex != MenuPageIndex.ServerList;
         }
+        
+        [HarmonyPatch(typeof(NetworkManager), "OnDisconnected")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void NetworkManager_OnDisconnected(DisconnectCause cause)
+        {
+            if (cause == DisconnectCause.InvalidRegion)
+            {
+                PlayerPrefs.DeleteKey("PUNSelectedRegion");
+                PlayerPrefs.Save();
+            }
+        }
     }
 }
