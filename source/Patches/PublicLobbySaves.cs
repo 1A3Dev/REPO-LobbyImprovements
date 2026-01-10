@@ -85,6 +85,7 @@ namespace LobbyImprovements.Patches
         [HarmonyPatch(typeof(MenuPageSaves), "OnNewGame")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
+        [HarmonyPriority(Priority.First)]
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
             if (!publicSavesMenuOpen || __instance.saveFiles.Count >= 10)
