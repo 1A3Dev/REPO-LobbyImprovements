@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Steamworks;
@@ -9,6 +8,17 @@ namespace LobbyImprovements.Patches
     public class PublicLobbySaves
     {
         internal static bool publicSavesMenuOpen;
+        
+        public static void ToggleLobbyTypeSaving(GameManager.LobbyTypes lobbyType, bool state)
+        {
+            if(StatsManager.instance) return;
+            
+            if(state && !StatsManager.instance.savedLobbyTypes.Contains(lobbyType)){
+                StatsManager.instance.savedLobbyTypes.Add(lobbyType);
+            }else if(!state && StatsManager.instance.savedLobbyTypes.Contains(lobbyType)){
+                StatsManager.instance.savedLobbyTypes.Remove(lobbyType);
+            }
+        }
         
         // Server List Menu -> Create New -> Saves Menu
         [HarmonyPatch(typeof(MenuPageServerList), "ButtonCreateNew")]
@@ -37,6 +47,12 @@ namespace LobbyImprovements.Patches
             {
                 __instance.gameModeHeader.text = publicSavesMenuOpen ? "Public Multiplayer" : "Private Multiplayer";
             }
+            else
+            {
+                publicSavesMenuOpen = false;
+            }
+
+            __instance.maxSaveFiles = PluginLoader.saveFileMaxAmount.Value;
         }
         
         // Saves Menu > New Game/Load Save > Server Name (Skip Confirmation Popup)
@@ -88,7 +104,7 @@ namespace LobbyImprovements.Patches
         [HarmonyPriority(Priority.First)]
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
-            if (!publicSavesMenuOpen || __instance.saveFiles.Count >= 10)
+            if (!publicSavesMenuOpen || __instance.saveFiles.Count >= __instance.maxSaveFiles)
                 return true;
 
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
@@ -109,8 +125,8 @@ namespace LobbyImprovements.Patches
             MenuPage prevPage = MenuManager.instance.currentMenuPage;
             MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
             menuPageServerListCreateNew.menuPageParent = prevPage;
-            menuPageServerListCreateNew.saveFileName = __instance.currentSaveFileName;
             menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
+            menuPageServerListCreateNew.saveFileName = __instance.currentSaveFileName;
             return false;
         }
         
@@ -120,8 +136,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
         {
-            if (!publicSavesMenuOpen && !PluginLoader.mainMenuOverhaul)
-                return true;
+            if (!publicSavesMenuOpen && !PluginLoader.mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
             MenuManager.instance.PageOpen(MenuPageIndex.Saves);
@@ -134,8 +149,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnGoBack(MenuPageSaves __instance)
         {
-            if (!publicSavesMenuOpen)
-                return true;
+            if(!publicSavesMenuOpen) return true;
 
             publicSavesMenuOpen = false;
             
@@ -149,7 +163,8 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void StatsManager_Awake_Postfix(StatsManager __instance)
         {
-            __instance.savePublicLobbies = PluginLoader.savePublicEnabled.Value || PluginLoader.mainMenuOverhaulEnabled.Value;
+            ToggleLobbyTypeSaving(GameManager.LobbyTypes.Public, PluginLoader.savePublicEnabled.Value || PluginLoader.mainMenuOverhaulEnabled.Value);
+            ToggleLobbyTypeSaving(GameManager.LobbyTypes.Matchmaking, PluginLoader.saveMatchmakingEnabled.Value || PluginLoader.mainMenuOverhaulEnabled.Value);
         }
     }
 }

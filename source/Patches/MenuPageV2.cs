@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using HarmonyLib;
+﻿using HarmonyLib;
 using MenuLib;
-using MenuLib.MonoBehaviors;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
@@ -20,13 +15,18 @@ namespace LobbyImprovements.Patches
     {
         internal static void NewGame_Internal(MenuButton __instance)
         {
+            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+            if(menuPageSaves && menuPageSaves.maxSaveFiles > 0 && menuPageSaves.saveFiles.Count >= menuPageSaves.maxSaveFiles){
+                MenuManager.instance.PageCloseAllAddedOnTop();
+                MenuManager.instance.PagePopUp("Save file limit reached", Color.red, $"You can only have {menuPageSaves.maxSaveFiles} save files at a time. Please delete some save files to make room for new ones.", "OK", true);
+                return;
+            }
             var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Private", () =>
                 {
                     PublicLobbySaves.publicSavesMenuOpen = false;
-                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
                     menuPageSaves?.OnNewGame();
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
@@ -36,25 +36,20 @@ namespace LobbyImprovements.Patches
                 var repoButton = MenuAPI.CreateREPOButton("Public (Server List)", () =>
                 {
                     PublicLobbySaves.publicSavesMenuOpen = true;
-                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
                     menuPageSaves?.OnNewGame();
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
             });
-            // repoPage.AddElementToScrollView(scrollView =>
-            // {
-            //     var repoButton = MenuAPI.CreateREPOButton("Public (Random)", () =>
-            //     {
-            //         PublicLobbySaves.publicSavesMenuOpen = true;
-            //         RunManager.instance.ResetProgress();
-            //         StatsManager.instance.saveFileCurrent = "";
-            //         GameManager.instance.SetConnectRandom(true);
-            //         GameManager.instance.localTest = false;
-            //         RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
-            //         RunManager.instance.lobbyJoin = true;
-            //     }, parent: scrollView, localPosition: Vector2.zero);
-            //     return repoButton.rectTransform;
-            // });
+            repoPage.AddElementToScrollView(scrollView =>
+            {
+                var repoButton = MenuAPI.CreateREPOButton("Public (Random)", () =>
+                {
+                    PublicLobbySaves.publicSavesMenuOpen = false;
+                    GameManager.instance.matchmakingMode = GameManager.RandomMatchmakingModes.Create;
+                    SemiFunc.MenuActionRandomMatchmaking();
+                }, parent: scrollView, localPosition: Vector2.zero);
+                return repoButton.rectTransform;
+            });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Back", () =>
@@ -68,13 +63,14 @@ namespace LobbyImprovements.Patches
         
         internal static void LoadGame_Internal(MenuButton __instance)
         {
+            MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
+            
             var repoPage = MenuAPI.CreateREPOPopupPage(__instance.menuButtonPopUp?.headerText, shouldCachePage: false, pageDimmerVisibility: true, spacing: 1.5f, localPosition: Vector2.zero);
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Private", () =>
                 {
                     PublicLobbySaves.publicSavesMenuOpen = false;
-                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
                     menuPageSaves?.OnLoadGame();
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
@@ -84,25 +80,20 @@ namespace LobbyImprovements.Patches
                 var repoButton = MenuAPI.CreateREPOButton("Public (Server List)", () =>
                 {
                     PublicLobbySaves.publicSavesMenuOpen = true;
-                    MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
                     menuPageSaves?.OnLoadGame();
                 }, parent: scrollView, localPosition: Vector2.zero);
                 return repoButton.rectTransform;
             });
-            // repoPage.AddElementToScrollView(scrollView =>
-            // {
-            //     var repoButton = MenuAPI.CreateREPOButton("Public (Random)", () =>
-            //     {
-            //         PublicLobbySaves.publicSavesMenuOpen = true;
-            //         RunManager.instance.ResetProgress();
-            //         SemiFunc.SaveFileLoad(StatsManager.instance.saveFileCurrent, null);
-            //         GameManager.instance.SetConnectRandom(true);
-            //         GameManager.instance.localTest = false;
-            //         RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
-            //         RunManager.instance.lobbyJoin = true;
-            //     }, parent: scrollView, localPosition: Vector2.zero);
-            //     return repoButton.rectTransform;
-            // });
+            repoPage.AddElementToScrollView(scrollView =>
+            {
+                var repoButton = MenuAPI.CreateREPOButton("Public (Random)", () =>
+                {
+                    PublicLobbySaves.publicSavesMenuOpen = false;
+                    GameManager.instance.matchmakingMode = GameManager.RandomMatchmakingModes.Create;
+                    SemiFunc.MenuActionRandomMatchmaking(StatsManager.instance.saveFileCurrent);
+                }, parent: scrollView, localPosition: Vector2.zero);
+                return repoButton.rectTransform;
+            });
             repoPage.AddElementToScrollView(scrollView =>
             {
                 var repoButton = MenuAPI.CreateREPOButton("Back", () =>
@@ -292,13 +283,9 @@ namespace LobbyImprovements.Patches
         private static bool MenuPageServerList_ButtonCreateNew()
         {
             if (!PluginLoader.mainMenuOverhaul) return true;
-            
-            RunManager.instance.ResetProgress();
-            StatsManager.instance.saveFileCurrent = "";
-            GameManager.instance.SetConnectRandom(true);
-            GameManager.instance.localTest = false;
-            RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
-            RunManager.instance.lobbyJoin = true;
+
+            GameManager.instance.matchmakingMode = GameManager.RandomMatchmakingModes.Join;
+            SemiFunc.MenuActionRandomMatchmaking();
             return false;
         }
         
