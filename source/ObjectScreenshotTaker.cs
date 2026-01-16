@@ -270,8 +270,8 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			if(SteamApps.CurrentBetaName == "tester"){
 				if(!nameGuids.ContainsKey(ssType)) nameGuids[ssType] = new();
 				if(nameGuids[ssType].TryGetValue(fileNameRaw, out var guid)){
-					if(File.Exists(guid)) continue;
-					fileName = $"{SavePath}/{ssType}/{guid}.png";
+					string newFileName = $"{SavePath}/{ssType}/{guid}.png";
+					if(File.Exists(newFileName)) continue;
 				}else{
 					string newGuid = System.Guid.NewGuid().ToString();
 					fileName = $"{SavePath}/{ssType}/{newGuid}.png";
