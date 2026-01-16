@@ -274,11 +274,12 @@ public class ObjectScreenshotTaker : MonoBehaviour
 					if(File.Exists(newFileName)) continue;
 				}else{
 					string newGuid = System.Guid.NewGuid().ToString();
-					fileName = $"{SavePath}/{ssType}/{newGuid}.png";
-					while(File.Exists(fileName)){
+					string newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
+					while(File.Exists(newFileName)){
 						newGuid = System.Guid.NewGuid().ToString();
-						fileName = $"{SavePath}/{ssType}/{newGuid}.png";
+						newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
 					}
+					fileName = newFileName;
 					nameGuids[ssType][fileNameRaw] = newGuid;
 					updatedNameGuids = true;
 				}
