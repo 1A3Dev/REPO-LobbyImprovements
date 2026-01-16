@@ -255,7 +255,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		
 		foreach (var module in modules)
 		{
-			if (!module || (ssType == "Modules" && module.name.StartsWith("Start Room - Shop"))) continue;
+			if (!module) continue;
 
 			string fileNameRaw = module.name;
 			if (ssType == "Enemies")
@@ -269,9 +269,10 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			// Randomly generated file names for tester builds
 			if(SteamApps.CurrentBetaName == "tester"){
 				if(!nameGuids.ContainsKey(ssType)) nameGuids[ssType] = new();
-				if(nameGuids[ssType].TryGetValue(fileNameRaw, out var guid)){
+				if(nameGuids[ssType].TryGetValue(fileNameRaw.ToLower(), out var guid)){
 					string newFileName = $"{SavePath}/{ssType}/{guid}.png";
 					if(File.Exists(newFileName)) continue;
+					fileName = newFileName;
 				}else{
 					string newGuid = System.Guid.NewGuid().ToString();
 					string newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
@@ -280,7 +281,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 						newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
 					}
 					fileName = newFileName;
-					nameGuids[ssType][fileNameRaw] = newGuid;
+					nameGuids[ssType][fileNameRaw.ToLower()] = newGuid;
 					updatedNameGuids = true;
 				}
 			}
@@ -356,7 +357,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 
 				useCollisionsForBounds = true;
 				
-				if (module.name == "Item Melee Baseball Bat" || module.name == "Item Melee Frying Pan" || module.name.StartsWith("Item WalkieTalkie"))
+				if (module.name == "Item Melee Baseball Bat" || module.name == "Item Melee Frying Pan" || module.name == "Item Vehicle Semiscooter" || module.name.StartsWith("Item WalkieTalkie"))
 				{
 					yield return new WaitForSeconds(1f);
 				}
