@@ -464,7 +464,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 
 			yield return new WaitForEndOfFrame();
 			TakeScreenshot(fileName);
-			PluginLoader.StaticLogger.LogDebug($"Screenshot saved: {Path.GetFileName(fileNameRaw)} ({fileName})");
+			PluginLoader.StaticLogger.LogDebug($"Screenshot saved: {fileNameRaw} ({Path.GetFileName(fileName)})");
 			Destroy(moduleObject);
 			
 			if (Time.timeScale == 0f) Time.timeScale = 1f;
