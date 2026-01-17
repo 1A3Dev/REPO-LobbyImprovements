@@ -255,7 +255,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		
 		foreach (var module in modules)
 		{
-			if (!module || (ssType == "Modules" && module.name.StartsWith("Start Room - Shop"))) continue;
+			if (!module) continue;
 
 			string fileNameRaw = module.name;
 			if (ssType == "Enemies")
@@ -269,17 +269,19 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			// Randomly generated file names for tester builds
 			if(SteamApps.CurrentBetaName == "tester"){
 				if(!nameGuids.ContainsKey(ssType)) nameGuids[ssType] = new();
-				if(nameGuids[ssType].TryGetValue(fileNameRaw, out var guid)){
-					if(File.Exists(guid)) continue;
-					fileName = $"{SavePath}/{ssType}/{guid}.png";
+				if(nameGuids[ssType].TryGetValue(fileNameRaw.ToLower(), out var guid)){
+					string newFileName = $"{SavePath}/{ssType}/{guid}.png";
+					if(File.Exists(newFileName)) continue;
+					fileName = newFileName;
 				}else{
 					string newGuid = System.Guid.NewGuid().ToString();
-					fileName = $"{SavePath}/{ssType}/{newGuid}.png";
-					while(File.Exists(fileName)){
+					string newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
+					while(File.Exists(newFileName)){
 						newGuid = System.Guid.NewGuid().ToString();
-						fileName = $"{SavePath}/{ssType}/{newGuid}.png";
+						newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
 					}
-					nameGuids[ssType][fileNameRaw] = newGuid;
+					fileName = newFileName;
+					nameGuids[ssType][fileNameRaw.ToLower()] = newGuid;
 					updatedNameGuids = true;
 				}
 			}
@@ -464,7 +466,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 
 			yield return new WaitForEndOfFrame();
 			TakeScreenshot(fileName);
-			PluginLoader.StaticLogger.LogDebug($"Screenshot saved: {fileName}");
+			PluginLoader.StaticLogger.LogDebug($"Screenshot saved: {fileNameRaw} ({Path.GetFileName(fileName)})");
 			Destroy(moduleObject);
 			
 			if (Time.timeScale == 0f) Time.timeScale = 1f;

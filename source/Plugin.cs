@@ -34,24 +34,23 @@ namespace LobbyImprovements
         internal static ManualLogSource StaticLogger { get; private set; }
         internal static ConfigFile StaticConfig { get; private set; }
         
-        // internal static ConfigEntry<bool> playerNamePrefixEnabled;
-        internal static ConfigEntry<string> playerNamePrefixSelected;
-        
-        internal static ConfigEntry<bool> singleplayerLobbyMenu;
-        
-        internal static ConfigEntry<bool> saveDeleteEnabled;
-        internal static ConfigEntry<bool> savePublicEnabled;
-
+        internal static ConfigEntry<bool> debugConsole;
+        internal static ConfigEntry<bool> testerCommands;
         
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
         
-        internal static ConfigEntry<bool> testerOverlayEnabled;
-        
-        internal static ConfigEntry<bool> debugConsole;
-        internal static ConfigEntry<bool> testerCommands;
+        internal static ConfigEntry<bool> singleplayerLobbyMenu;
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
+        
+        // internal static ConfigEntry<bool> playerNamePrefixEnabled;
+        internal static ConfigEntry<string> playerNamePrefixSelected;
+        
+        internal static ConfigEntry<bool> saveDeleteEnabled;
+        internal static ConfigEntry<bool> savePublicEnabled;
+        
+        internal static ConfigEntry<bool> testerOverlayEnabled;
         
         internal static bool mainMenuOverhaul;
         
@@ -62,118 +61,106 @@ namespace LobbyImprovements
             
             StaticLogger = Logger;
             StaticConfig = Config;
-
-            try
-            {
-                harmony.PatchAll(typeof(ChatCommands));
-            }
-            catch (Exception e)
-            {
-                StaticLogger.LogError("ChatCommands Patch Failed: " + e);
-            }
             
-            try
-            {
-                harmony.PatchAll(typeof(PlayerNamePrefix_SteamManager));
+            #region Debug Console
+            debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console.");
+            testerCommands = StaticConfig.Bind("Debug Console", "Tester Commands", false, "Enables vanilla debug commands for the debug console. This requires a game restart!");
+            #endregion
+
+            #region Fast Startup
+            moonPhaseUIEnabled = StaticConfig.Bind("Fast Startup", "Moon Phase", true, "Should the moon phase animation be shown?");
+            splashScreenUIEnabled = StaticConfig.Bind("Fast Startup", "Splash Screen", true, "Should the splash screen be shown?");
+            #endregion
+            
+            #region Main Menu
+            mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Improved layout for the main menu to reduce clicks.");
+            if(BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib")){
+                try{
+                    harmony.PatchAll(typeof(MenuPageV2));
+                }catch(Exception e){
+                    StaticLogger.LogError("MenuPageV2 Patch Failed: " + e);
+                }
+                #if DEBUG
+                mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
+                #endif
+            }else if(mainMenuOverhaulEnabled.Value){
+                StaticLogger.LogWarning("The 'Improved Layout' of the main menu requires the MenuLib mod. Please install it if you wish to use that feature.");
             }
-            catch (Exception e)
-            {
+            #endregion
+            
+            #region Saves
+            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "Should saves be automatically deleted when everyone dies?");
+            savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "Should public lobbies be saved?");
+            #endregion
+
+            #region Singleplayer
+            singleplayerLobbyMenu = StaticConfig.Bind("Singleplayer", "Lobby Menu", false, "Should the lobby menu be enabled in singleplayer?");
+            #endregion
+
+            #region Tester Overlay
+            testerOverlayEnabled = StaticConfig.Bind("Tester Overlay", "Enabled", false, "Should the tester overlay be shown?");
+            testerOverlayEnabled.SettingChanged += (sender, args) => {
+                if(!Debug.isDebugBuild && DebugCommandHandler.instance){
+                    DebugCommandHandler.instance.debugOverlay = testerOverlayEnabled.Value;
+                }
+            };
+            #endregion
+            
+            #region Name Prefix
+            try{
+                harmony.PatchAll(typeof(PlayerNamePrefix_SteamManager));
+            }catch(Exception e){
                 StaticLogger.LogError("PlayerNamePrefix Patch Failed: " + e);
 
-                if (playerNamePrefixSelected == null)
-                {
+                if(playerNamePrefixSelected == null){
                     playerNamePrefixSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
-                    playerNamePrefixSelected.SettingChanged += (sender, args) =>
-                    {
+                    playerNamePrefixSelected.SettingChanged += (sender, args) => {
                         PlayerNamePrefix_SteamManager.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
-                        if (GameManager.Multiplayer())
-                        {
+                        if(GameManager.Multiplayer()){
                             PlayerNamePrefix_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", playerNamePrefixSelected.Value);
                         }
                     };
                 }
             }
-            
-            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "Should saves be automatically deleted when everyone dies?");
-            savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "Should public lobbies have save files?");
-            try
-            {
-                harmony.PatchAll(typeof(PublicLobbySaves));
-            }
-            catch (Exception e)
-            {
-                StaticLogger.LogError("PublicLobbySaves Patch Failed: " + e);
+            #endregion
+
+            #region Patches
+            try{
+                harmony.PatchAll(typeof(ChatCommands));
+            }catch(Exception e){
+                StaticLogger.LogError("ChatCommands Patch Failed: " + e);
             }
             
-            try
-            {
-                harmony.PatchAll(typeof(ServerListSearch));
-            }
-            catch (Exception e)
-            {
-                StaticLogger.LogError("ServerListSearch Patch Failed: " + e);
+            try{
+                harmony.PatchAll(typeof(FastStartup));
+            }catch(Exception e){
+                StaticLogger.LogError("FastStartup Patch Failed: " + e);
             }
             
-            singleplayerLobbyMenu = StaticConfig.Bind("Singleplayer", "Lobby Menu", false, "Should the lobby menu be enabled in singleplayer?");
-            try
-            {
+            try{
                 harmony.PatchAll(typeof(MenuPageLobbySP));
-            }
-            catch (Exception e)
-            {
+            }catch(Exception e){
                 StaticLogger.LogError("MenuPageLobbySP Patch Failed: " + e);
             }
             
-            moonPhaseUIEnabled = StaticConfig.Bind("Fast Startup", "Moon Phase", true, "Should the moon phase animation be shown?");
-            splashScreenUIEnabled = StaticConfig.Bind("Fast Startup", "Splash Screen", true, "Should the splash screen be shown?");
-            try
-            {
-                harmony.PatchAll(typeof(FastStartup));
+            try{
+                harmony.PatchAll(typeof(PublicLobbySaves));
+            }catch(Exception e){
+                StaticLogger.LogError("PublicLobbySaves Patch Failed: " + e);
             }
-            catch (Exception e)
-            {
-                StaticLogger.LogError("FastStartup Patch Failed: " + e);
-            }
-
-            debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console. This requires a game restart!");
-            testerCommands = StaticConfig.Bind("Debug Console", "Tester Commands", false, "Enables vanilla debug commands for the debug console. This requires a game restart!");
             
-            testerOverlayEnabled = StaticConfig.Bind("Tester Overlay", "Enabled", false, "Should the tester overlay be shown?");
-            testerOverlayEnabled.SettingChanged += (sender, args) =>
-            {
-                if (!Debug.isDebugBuild && DebugCommandHandler.instance)
-                {
-                    DebugCommandHandler.instance.debugOverlay = testerOverlayEnabled.Value;
-                }
-            };
-            try
-            {
-                harmony.PatchAll(typeof(TesterOverlayPatches));
+            try{
+                harmony.PatchAll(typeof(ServerListSearch));
+            }catch(Exception e){
+                StaticLogger.LogError("ServerListSearch Patch Failed: " + e);
             }
-            catch (Exception e)
-            {
+            
+            try{
+                harmony.PatchAll(typeof(TesterOverlayPatches));
+            }catch(Exception e){
                 StaticLogger.LogError("TesterOverlay Patch Failed: " + e);
             }
-            
-            mainMenuOverhaulEnabled = StaticConfig.Bind("Main Menu", "Improved Layout", false, "Reduces the number of clicks to access some parts of the main menu.");
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("nickklmao.menulib"))
-            {
-                try
-                {
-                    harmony.PatchAll(typeof(MenuPageV2));
-                }
-                catch (Exception e)
-                {
-                    StaticLogger.LogError("MenuPageV2 Patch Failed: " + e);
-                }
-#if DEBUG
-                mainMenuOverhaul = mainMenuOverhaulEnabled.Value;
-#endif
-            }
-            else if (mainMenuOverhaulEnabled.Value)
-            {
-                StaticLogger.LogWarning("The 'Improved Layout' of the main menu requires the MenuLib mod. Please install it if you wish to use that feature.");
-            }
+            #endregion
 
             StaticLogger.LogInfo("Patches Loaded");
         }
