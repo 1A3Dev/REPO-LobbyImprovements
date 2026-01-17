@@ -119,7 +119,7 @@ namespace LobbyImprovements
             #endregion
 
             #region Multiplayer
-            maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 6, new ConfigDescription("Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
+            maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 0, new ConfigDescription("Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
             maxPlayerCount.SettingChanged += (sender, args) => {
                 if(GameManager.instance) GameManager.instance.maxPlayers = maxPlayerCount.Value > 0 ? maxPlayerCount.Value : GameManager.maxPlayersDefault;
             };
