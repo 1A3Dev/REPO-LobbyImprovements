@@ -302,6 +302,14 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
+        [HarmonyPatch(typeof(MenuPagePublicGameChoice), "ButtonRandomMatchmaking")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static void MenuPagePublicGameChoice_ButtonRandomMatchmaking()
+        {
+            GameManager.instance.matchmakingMode = GameManager.RandomMatchmakingModes.JoinOrCreate;
+        }
+        
         // Public Game Choice > Main Menu
         [HarmonyPatch(typeof(MenuPagePublicGameChoice), "ExitPage")]
         [HarmonyPrefix]

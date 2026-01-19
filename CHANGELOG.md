@@ -1,3 +1,17 @@
+# 1.1.9-PRE
+
+### NEW
+
+- Added a config option to change the keybind for opening the debug console
+- Added a config option to change the max player count
+- Added a separate config option for saving random matchmaking lobbies
+
+### CHANGES
+
+- Changed various things to use new base-game logic
+  - Public Lobby Saving
+  - Splash Screen Skip
+
 # 1.1.8
 
 ### CHANGES
