@@ -147,6 +147,7 @@ namespace LobbyImprovements.Patches
             MenuManager.instance.PageOpen(MenuPageIndex.PublicGameChoice);
             return false;
         }
+        
         [HarmonyPatch(typeof(MenuManager), "PageOpen")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -288,7 +289,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void MenuPagePublicGameChoice_ButtonRandomMatchmaking()
         {
-            GameManager.instance.matchmakingMode = PluginLoader.saveMatchmakingEnabled.Value ? GameManager.RandomMatchmakingModes.Join : GameManager.RandomMatchmakingModes.JoinOrCreate;
+            GameManager.instance.matchmakingMode = PluginLoader.mainMenuOverhaul && PluginLoader.saveMatchmakingEnabled.Value ? GameManager.RandomMatchmakingModes.Join : GameManager.RandomMatchmakingModes.JoinOrCreate;
         }
         
         // Public Game Choice > Main Menu
