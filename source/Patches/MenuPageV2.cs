@@ -4,8 +4,6 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace LobbyImprovements.Patches
@@ -13,6 +11,8 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class MenuPageV2
     {
+        private static MenuPageIndex regionsPreviousPage = MenuPageIndex.Saves;
+        
         internal static void NewGame_Internal(MenuButton __instance)
         {
             MenuPageSaves menuPageSaves = __instance.parentPage?.GetComponent<MenuPageSaves>() ?? __instance.parentPage?.pageUnderThisPage?.GetComponent<MenuPageSaves>();
@@ -135,7 +135,7 @@ namespace LobbyImprovements.Patches
             return false;
         }
         
-        // Main Menu > Server List (Skip region menu)
+        // Main Menu > Public Game Choice (Skip region menu)
         [HarmonyPatch(typeof(MenuPageMain), "ButtonEventPlayRandom")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -144,8 +144,20 @@ namespace LobbyImprovements.Patches
             if (!PluginLoader.mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
+            MenuManager.instance.PageOpen(MenuPageIndex.PublicGameChoice);
             return false;
+        }
+        [HarmonyPatch(typeof(MenuManager), "PageOpen")]
+        [HarmonyPrefix]
+        [HarmonyWrapSafe]
+        private static void MenuManager_PageOpen_Prefix(MenuManager __instance, MenuPage __result, MenuPageIndex menuPageIndex, bool addedPageOnTop = false)
+        {
+            if (!PluginLoader.mainMenuOverhaul) return;
+
+            if (menuPageIndex == MenuPageIndex.Saves || menuPageIndex == MenuPageIndex.PublicGameChoice || menuPageIndex == MenuPageIndex.ServerList)
+            {
+                regionsPreviousPage = menuPageIndex;
+            }
         }
         
         [HarmonyPatch(typeof(MenuManager), "PageOpen")]
@@ -249,24 +261,7 @@ namespace LobbyImprovements.Patches
             
             Transform createNewObj = __instance.transform.Find("Panel/Create New");
             MenuButton createNewBtn = createNewObj?.Find("Menu Button - CREATE NEW")?.GetComponent<MenuButton>();
-            if (createNewBtn)
-            {
-                createNewBtn.buttonText.text = "Refresh";
-                createNewBtn.button.onClick = new Button.ButtonClickedEvent();
-                createNewBtn.button.onClick.AddListener(RefreshLobbies);
-                
-                GameObject randomLobbyObj = Object.Instantiate(createNewObj.gameObject, createNewObj.parent);
-                randomLobbyObj.name = "Random Server";
-                randomLobbyObj.transform.localPosition = new Vector2(0, createNewObj.localPosition.y);
-                MenuButton randomLobbyBtn = randomLobbyObj.GetComponentInChildren<MenuButton>();
-                randomLobbyBtn.buttonText.text = "Random";
-                randomLobbyBtn.button.onClick = new Button.ButtonClickedEvent();
-                randomLobbyBtn.menuButtonPopUp = randomLobbyBtn.gameObject.AddComponent<MenuButtonPopUp>();
-                randomLobbyBtn.menuButtonPopUp.headerText = "Join Server";
-                randomLobbyBtn.menuButtonPopUp.bodyText = "Are you sure you want to join a random server?";
-                randomLobbyBtn.menuButtonPopUp.option1Event = new UnityEvent();
-                randomLobbyBtn.menuButtonPopUp.option1Event.AddListener(__instance.ButtonCreateNew);
-            }
+            if (createNewBtn) createNewBtn.buttonText.text = "Refresh";
         }
 
         [HarmonyPatch(typeof(MenuPageServerList), "OnDestroy")]
@@ -284,21 +279,7 @@ namespace LobbyImprovements.Patches
         {
             if (!PluginLoader.mainMenuOverhaul) return true;
 
-            GameManager.instance.matchmakingMode = GameManager.RandomMatchmakingModes.Join;
-            SemiFunc.MenuActionRandomMatchmaking();
-            return false;
-        }
-        
-        // Server List > Main Menu
-        [HarmonyPatch(typeof(MenuPageServerList), "ExitPage")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool MenuPageServerList_ExitPage()
-        {
-            if (!PluginLoader.mainMenuOverhaul) return true;
-            
-            MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.Main);
+            RefreshLobbies();
             return false;
         }
         
@@ -307,7 +288,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void MenuPagePublicGameChoice_ButtonRandomMatchmaking()
         {
-            GameManager.instance.matchmakingMode = GameManager.RandomMatchmakingModes.JoinOrCreate;
+            GameManager.instance.matchmakingMode = PluginLoader.saveMatchmakingEnabled.Value ? GameManager.RandomMatchmakingModes.Join : GameManager.RandomMatchmakingModes.JoinOrCreate;
         }
         
         // Public Game Choice > Main Menu
@@ -332,18 +313,17 @@ namespace LobbyImprovements.Patches
             PlayerPrefs.SetString("PUNSelectedRegion", _region);
             PlayerPrefs.Save();
             
-            if (__instance.type != MenuPageRegions.Type.HostGame)
+            if (regionsPreviousPage == MenuPageIndex.ServerList)
             {
                 DataDirector.instance.networkRegion = _region;
                 MenuManager.instance.PageCloseAll();
-                MenuManager.instance.PageOpen(MenuPageIndex.ServerList);
+                MenuManager.instance.PageOpen(regionsPreviousPage);
                 return false;
             }
 
             return true;
         }
         
-        // Regions > Original Page
         [HarmonyPatch(typeof(MenuPageRegions), "ExitPage")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -352,10 +332,11 @@ namespace LobbyImprovements.Patches
             if (!PluginLoader.mainMenuOverhaul) return true;
             
             MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(__instance.type == MenuPageRegions.Type.PlayRandom ? MenuPageIndex.ServerList : MenuPageIndex.Saves);
+            MenuManager.instance.PageOpen(regionsPreviousPage);
             return false;
         }
         
+        // Fix server list infinite loading when closing regions page
         [HarmonyPatch(typeof(MenuPageRegions), "OnDestroy")]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
