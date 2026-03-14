@@ -179,12 +179,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 		yield return new WaitForSeconds(2f);
 		
 		// List<Level> levels = RunManager.instance.levels;
-		List<Level> levels = Resources.FindObjectsOfTypeAll<Level>().Where(x => x &&
-			x.name != "Level - Lobby" &&
-			x.name != "Level - Lobby Menu" &&
-			x.name != "Level - Main Menu" &&
-			x.name != "Level - Splash Screen"
-		).ToList();
+		List<Level> levels = Resources.FindObjectsOfTypeAll<Level>().Where(x => x).ToList();
 		
 		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.StartRooms).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "StartRoom", "Modules"));
 		yield return StartCoroutine(TakeScreenshotsCoroutine(levels.SelectMany(x => x.ModulesNormal1.Concat(x.ModulesNormal2).Concat(x.ModulesNormal3)).Select(x => x.Prefab).Distinct().OrderBy(x => x.name).ToArray(), "Normal", "Modules"));
@@ -267,23 +262,21 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			if (File.Exists(fileName)) continue;
 			
 			// Randomly generated file names for tester builds
-			if(SteamApps.CurrentBetaName == "tester"){
-				if(!nameGuids.ContainsKey(ssType)) nameGuids[ssType] = new();
-				if(nameGuids[ssType].TryGetValue(fileNameRaw.ToLower(), out var guid)){
-					string newFileName = $"{SavePath}/{ssType}/{guid}.png";
-					if(File.Exists(newFileName)) continue;
-					fileName = newFileName;
-				}else{
-					string newGuid = System.Guid.NewGuid().ToString();
-					string newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
-					while(File.Exists(newFileName)){
-						newGuid = System.Guid.NewGuid().ToString();
-						newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
-					}
-					fileName = newFileName;
-					nameGuids[ssType][fileNameRaw.ToLower()] = newGuid;
-					updatedNameGuids = true;
+			if(!nameGuids.ContainsKey(ssType)) nameGuids[ssType] = new();
+			if(nameGuids[ssType].TryGetValue(fileNameRaw.ToLower(), out var guid)){
+				string newFileName = $"{SavePath}/{ssType}/{guid}.png";
+				if(File.Exists(newFileName)) continue;
+				fileName = newFileName;
+			}else if(SteamApps.CurrentBetaName == "tester"){
+				string newGuid = System.Guid.NewGuid().ToString();
+				string newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
+				while(File.Exists(newFileName)){
+					newGuid = System.Guid.NewGuid().ToString();
+					newFileName = $"{SavePath}/{ssType}/{newGuid}.png";
 				}
+				fileName = newFileName;
+				nameGuids[ssType][fileNameRaw.ToLower()] = newGuid;
+				updatedNameGuids = true;
 			}
 			
 			// Required logic before spawning
@@ -357,7 +350,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 
 				useCollisionsForBounds = true;
 				
-				if (module.name == "Item Melee Baseball Bat" || module.name == "Item Melee Frying Pan" || module.name == "Item Vehicle Semiscooter" || module.name.StartsWith("Item WalkieTalkie"))
+				if (module.name == "Item Melee Baseball Bat" || module.name == "Item Melee Frying Pan" || module.name == "Item ReviveItem" || module.name.StartsWith("Item Vehicle Semiscooter") || module.name.StartsWith("Item WalkieTalkie"))
 				{
 					yield return new WaitForSeconds(1f);
 				}
@@ -405,7 +398,7 @@ public class ObjectScreenshotTaker : MonoBehaviour
 			}
 			else if (ssType == "Items")
 			{
-				if(module.name.StartsWith("Item Upgrade ") || module.name.StartsWith("Item WalkieTalkie")){
+				if(module.name.StartsWith("Item Upgrade ") || module.name.StartsWith("Item ReviveItem") || module.name.StartsWith("Item WalkieTalkie")){
 					isoDirection = new Vector3(1, 1, 1).normalized;
 				}
 			}
