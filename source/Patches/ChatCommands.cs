@@ -72,18 +72,6 @@ namespace LobbyImprovements.Patches
                     return args.Length <= 1 ? groups.Where(g => args.Length == 0 || g.ToLower().StartsWith(args[0].ToLower())).ToList() : new List<string>();
                 }
             ));
-            
-            DebugCommandHandler.instance.Register(new DebugCommandHandler.ChatCommand(
-                name: "lobbymenu",
-                description: "Return to the lobby menu. This may cause issues!",
-                isEnabled: () => SemiFunc.IsMasterClientOrSingleplayer() && DebugCommandHandler.instance.IsInGame(),
-                debugOnly: false,
-                execute: (isDebugConsole, args) => {
-                    RunManager.instance.ChangeLevel(false, false, RunManager.ChangeLevelType.LobbyMenu);
-                    Debug.Log("Command Used: /level lobby menu");
-                    DebugCommandHandler.instance.CommandSuccessEffect();
-                }
-            ));
         }
         
         // [HarmonyPatch(typeof(SteamManager), "Awake")]
