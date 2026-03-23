@@ -86,22 +86,6 @@ namespace LobbyImprovements.Patches
             ));
         }
         
-        [HarmonyPatch(typeof(RunManager), "RestartScene")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static void RunManager_RestartScene(RunManager __instance){
-            if(__instance.restarting && !__instance.restartingDone){
-                if(GameDirector.instance && GameDirector.instance.PlayerList.All(p => p.outroDone)){
-                    if(!__instance.lobbyJoin && !__instance.waitToChangeScene){
-                        // Fix objects spawned in previous levels being respawned for late joiners
-                        if(SemiFunc.RunIsLobbyMenu()){
-                            NetworkManager.instance.DestroyAll();
-                        }
-                    }
-                }
-            }
-        }
-        
         // [HarmonyPatch(typeof(SteamManager), "Awake")]
         // [HarmonyPostfix]
         // [HarmonyWrapSafe]
