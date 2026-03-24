@@ -27,7 +27,7 @@ namespace LobbyImprovements.Patches
             {
                 return;
             }
-            if (_levelFailed && __instance.levelCurrent == __instance.levelArena)
+            if (_levelFailed && __instance.levelArena.Contains(__instance.levelCurrent))
             {
                 __instance.debugLevel = __instance.levelLobbyMenu;
                 PluginLoader.StaticLogger.LogInfo("Setting debug level");
