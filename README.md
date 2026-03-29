@@ -7,18 +7,20 @@
 
 ### Information
 
-This mod is mainly for R.E.P.O game testers therefore some features are turned off by default so I'd recommend checking the config is configured how you want it.
+This mod includes a lot of quality of life improvements that I've suggested to be added to base-game. There's a bunch of things to configure so I'd suggest checking the config to make sure everything is configured how you'd like.
 
 ### Features
 
 - Debug Commands
-  - Config option to enable the base-game debug console which is accessible via the grave key (`)
+  - Config option to enable the base-game debug console which is accessible via the grave key (`). The keybind can now also be modified in the config as well.
     - You can scroll up and down with the up/down arrow keys or scroll wheel. Also when an option is selected you can press tab to complete it
     - You can use middle mouse click to redo the previous command you executed
     - Items & valuables spawn at the closest level point whilst enemies spawn in a room nearby
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen (This only activates after you've seen the full splash screen at least once)
+- Max Player Count
+  - Ability to change the max player count
 - Player Name Prefixes
   - This adds name prefixes for the game's developers and testers
     - If you are one of the R.E.P.O testers and don't see the option for the tester prefix please let me know
@@ -27,17 +29,12 @@ This mod is mainly for R.E.P.O game testers therefore some features are turned o
 - Saves
   - [Host] Config option to disable save file deletion
   - [Host] Config option to enable save files for public lobbies
+  - [Host] Config option to enable save files for random matchmaking lobbies
 - Server List
-  - Made searching for a steam lobby id in the search list attempt to join the lobby
+  - Putting a steam lobby id in the server list search will attempt to join the lobby
   - Ability to paste into the search input (pasting a lobby link works as well)
 
-Note: If the feature isn't prefixed with [Everyone] or [Host] then it's client side
-
-### Commands
-
-| Name       | Arguments | Example    | Description              | Host Only |
-| ---------- | --------- | ---------- | ------------------------ | --------- |
-| /lobbymenu |           | /lobbymenu | Return to the lobby menu | Yes       |
+**If the feature isn't prefixed with [Everyone] or [Host] then it's client side!**
 
 ### Support
 

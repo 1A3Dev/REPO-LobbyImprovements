@@ -39,8 +39,14 @@
         <Reference Include="Assembly-CSharp-firstpass" Publicize="true">
             <HintPath>$(GameDir)REPO_Data/Managed/Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
+        <Reference Include="Discord.Sdk">
+            <HintPath>$(GameDir)REPO_Data/Managed/Discord.Sdk.dll</HintPath>
+        </Reference>
         <Reference Include="Facepunch.Steamworks.Win64">
             <HintPath>$(GameDir)REPO_Data/Managed/Facepunch.Steamworks.Win64.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>$(GameDir)REPO_Data\Managed\Newtonsoft.Json.dll</HintPath>
         </Reference>
 		<Reference Include="Photon3Unity3D">
 			<HintPath>$(GameDir)REPO_Data\Managed\Photon3Unity3D.dll</HintPath>
@@ -59,9 +65,6 @@
         </Reference>
         <Reference Include="UnityEngine.UI">
             <HintPath>$(GameDir)REPO_Data\Managed\UnityEngine.UI.dll</HintPath>
-        </Reference>
-        <Reference Include="Newtonsoft.Json">
-            <HintPath>$(GameDir)REPO_Data\Managed\Newtonsoft.Json.dll</HintPath>
         </Reference>
     </ItemGroup>
 

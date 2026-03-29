@@ -11,6 +11,7 @@
 - Changed various things to use new base-game logic
   - Public Lobby Saving
   - Splash Screen Skip
+  - Removed the lobby menu command since it's now an option of the `level` command
 
 # 1.1.8
 
