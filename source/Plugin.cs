@@ -128,7 +128,7 @@ namespace LobbyImprovements
                 if(SemiFunc.IsMasterClient() && PhotonNetwork.CurrentRoom != null){
                     PhotonNetwork.CurrentRoom.MaxPlayers = Math.Max(_maxPlayers, PhotonNetwork.CurrentRoom.PlayerCount);
 
-                    if(SteamManager.instance.currentLobby.Id != SteamManager.instance.noLobby.Id){
+                    if(SteamManager.instance && SteamManager.instance.currentLobby.Id.IsValid){
                         SteamManager.instance.currentLobby.MaxMembers = PhotonNetwork.CurrentRoom.MaxPlayers;
                     }
 
