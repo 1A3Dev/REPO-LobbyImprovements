@@ -125,10 +125,18 @@ namespace LobbyImprovements
                 if(GameManager.instance) GameManager.instance.maxPlayers = _maxPlayers;
                 
                 // Update current lobby if master client
-                if(SemiFunc.IsMasterClient() && SteamManager.instance.currentLobby.Id != SteamManager.instance.noLobby.Id){
-                    SteamManager.instance.currentLobby.MaxMembers = Math.Max(_maxPlayers, SteamManager.instance.currentLobby.MemberCount);
+                if(SemiFunc.IsMasterClient()){
+                    int _maxPlayersLive = Math.Max(_maxPlayers, SteamManager.instance.currentLobby.MemberCount);
+                    if(SteamManager.instance.currentLobby.Id != SteamManager.instance.noLobby.Id){
+                        SteamManager.instance.currentLobby.MaxMembers = _maxPlayersLive;
+                    }
+
+                    if(PhotonNetwork.CurrentRoom != null){
+                        PhotonNetwork.CurrentRoom.MaxPlayers = _maxPlayersLive;
+                    }
+
                     if(DiscordManager.instance && DiscordManager.instance.activityParty != null){
-                        DiscordManager.instance.activityParty.SetMaxSize(SteamManager.instance.currentLobby.MaxMembers);
+                        DiscordManager.instance.activityParty.SetMaxSize(_maxPlayersLive);
                         DiscordManager.instance.RefreshDiscordRichPresence();
                     }
                 }
