@@ -122,21 +122,7 @@ namespace LobbyImprovements
             maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 0, new ConfigDescription("Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
             maxPlayerCount.SettingChanged += (sender, args) => {
                 int _maxPlayers = maxPlayerCount.Value > 0 ? maxPlayerCount.Value : GameManager.maxPlayersDefault;
-                if(GameManager.instance) GameManager.instance.maxPlayers = _maxPlayers;
-                
-                // Update current lobby if master client
-                if(SemiFunc.IsMasterClient() && PhotonNetwork.CurrentRoom != null){
-                    PhotonNetwork.CurrentRoom.MaxPlayers = Math.Max(_maxPlayers, PhotonNetwork.CurrentRoom.PlayerCount);
-
-                    if(SteamManager.instance && SteamManager.instance.currentLobby.Id.IsValid){
-                        SteamManager.instance.currentLobby.MaxMembers = PhotonNetwork.CurrentRoom.MaxPlayers;
-                    }
-
-                    if(DiscordManager.instance && DiscordManager.instance.activityParty != null){
-                        DiscordManager.instance.activityParty.SetMaxSize(PhotonNetwork.CurrentRoom.MaxPlayers);
-                        DiscordManager.instance.RefreshDiscordRichPresence();
-                    }
-                }
+                if(GameManager.instance) GameManager.instance.SetMaxPlayers(_maxPlayers);
             };
             #endregion
 

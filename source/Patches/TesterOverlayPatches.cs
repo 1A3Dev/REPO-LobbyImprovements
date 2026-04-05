@@ -14,11 +14,12 @@ public class TesterOverlayPatches
 		return Debug.isDebugBuild || SemiFunc.DebugDev();
 	}
 	
-	[HarmonyPatch(typeof(GameManager), "Start")]
+	[HarmonyPatch(typeof(GameManager), "Awake")]
 	[HarmonyPostfix]
 	[HarmonyWrapSafe]
-	private static void GameManager_Start(GameManager __instance)
+	private static void GameManager_Awake(GameManager __instance)
 	{
-		__instance.maxPlayers = PluginLoader.maxPlayerCount.Value > 0 ? PluginLoader.maxPlayerCount.Value : GameManager.maxPlayersDefault;
+		int _maxPlayers = PluginLoader.maxPlayerCount.Value > 0 ? PluginLoader.maxPlayerCount.Value : GameManager.maxPlayersDefault;
+		__instance.SetMaxPlayers(_maxPlayers);
 	}
 }
