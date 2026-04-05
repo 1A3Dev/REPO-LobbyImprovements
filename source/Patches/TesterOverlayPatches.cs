@@ -19,6 +19,7 @@ public class TesterOverlayPatches
 	[HarmonyWrapSafe]
 	private static void GameManager_Awake(GameManager __instance)
 	{
+		if(__instance != GameManager.instance) return;
 		int _maxPlayers = PluginLoader.maxPlayerCount.Value > 0 ? PluginLoader.maxPlayerCount.Value : GameManager.maxPlayersDefault;
 		__instance.SetMaxPlayers(_maxPlayers);
 	}
