@@ -19,7 +19,11 @@ public class TesterOverlayPatches
 	[HarmonyWrapSafe]
 	private static void GameManager_Awake(GameManager __instance)
 	{
-		if(__instance != GameManager.instance) return;
+		if(__instance != GameManager.instance || PluginLoader.maxPlayerCount.Value <= 0) return;
+		if(BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("Linkoid.Repo.RoboUnion")){
+			PluginLoader.StaticLogger.LogWarning("Detected RoboUnion mod, skipping max player count override to prevent potential conflicts.");
+			return;
+		}
 		int _maxPlayers = PluginLoader.maxPlayerCount.Value > 0 ? PluginLoader.maxPlayerCount.Value : GameManager.maxPlayersDefault;
 		__instance.SetMaxPlayers(_maxPlayers);
 	}
