@@ -34,8 +34,8 @@ public class TesterOverlayPatches
 	[HarmonyWrapSafe]
 	private static void SteamManager_Awake(SteamManager __instance)
 	{
-		if(SteamManager.instance != __instance || !SteamClient.IsValid || __instance.developerMode) return;
-		if(!PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())) return;
+		if(SteamManager.instance != __instance || __instance.developerMode) return;
+		if(!SteamClient.IsValid || !PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())) return;
 
 		__instance.developerUser = SemiFunc.User.Jenson;
 		__instance.developerMode = true;
