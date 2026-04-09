@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Steamworks;
 using UnityEngine;
 
 namespace LobbyImprovements.Patches;
@@ -26,5 +27,18 @@ public class TesterOverlayPatches
 		}
 		int _maxPlayers = PluginLoader.maxPlayerCount.Value > 0 ? PluginLoader.maxPlayerCount.Value : GameManager.maxPlayersDefault;
 		__instance.SetMaxPlayers(_maxPlayers);
+	}
+
+	[HarmonyPatch(typeof(SteamManager), "Awake")]
+	[HarmonyPostfix]
+	[HarmonyWrapSafe]
+	private static void SteamManager_Awake(SteamManager __instance)
+	{
+		if(SteamManager.instance != __instance || !SteamClient.IsValid || __instance.developerMode) return;
+		if(!PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())) return;
+
+		__instance.developerUser = SemiFunc.User.Jenson;
+		__instance.developerMode = true;
+		Debug.Log($"DEVELOPER MODE: {__instance.developerUser.ToString().ToUpper()} (MOD)");
 	}
 }
