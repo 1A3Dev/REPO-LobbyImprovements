@@ -108,7 +108,7 @@ namespace LobbyImprovements
             savePublicEnabled.SettingChanged += (sender, args) => {
                 PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Public, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
             };
-            saveMatchmakingEnabled = StaticConfig.Bind("Saves", "Random Lobbies", true, "Should random matchmaking lobbies be saved?");
+            saveMatchmakingEnabled = StaticConfig.Bind("Saves", "Random Lobbies", false, "Should random matchmaking lobbies be saved?");
             saveMatchmakingEnabled.SettingChanged += (sender, args) => {
                 PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Matchmaking, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
             };
