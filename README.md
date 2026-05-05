@@ -19,8 +19,6 @@ This mod includes a lot of quality of life improvements that I've suggested to b
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen (This only activates after you've seen the full splash screen at least once)
-- Max Player Count
-  - Config option to change the max player count
 - Player Name Prefixes
   - This adds name prefixes for the game's developers and testers
     - If you are one of the R.E.P.O testers and don't see the option for the tester prefix please let me know

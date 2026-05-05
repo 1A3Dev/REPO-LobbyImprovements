@@ -3,8 +3,6 @@
 ### NEW
 
 - Added a config option to change the keybind for opening the debug console
-- Added a config option to change the max player count
-  - If you have RoboUnion then that will take priority over this mod
 - Added a separate config option for saving random matchmaking lobbies
 
 ### CHANGES

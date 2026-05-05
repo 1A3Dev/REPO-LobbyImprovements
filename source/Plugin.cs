@@ -42,7 +42,7 @@ namespace LobbyImprovements
         
         internal static ConfigEntry<bool> singleplayerLobbyMenu;
         
-        internal static ConfigEntry<int> maxPlayerCount;
+        // internal static ConfigEntry<int> maxPlayerCount;
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
         
@@ -119,11 +119,11 @@ namespace LobbyImprovements
             #endregion
 
             #region Multiplayer
-            maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 0, new ConfigDescription("Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
-            maxPlayerCount.SettingChanged += (sender, args) => {
-                int _maxPlayers = maxPlayerCount.Value > 0 ? maxPlayerCount.Value : GameManager.maxPlayersDefault;
-                if(GameManager.instance) GameManager.instance.SetMaxPlayers(_maxPlayers);
-            };
+            // maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 0, new ConfigDescription("Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
+            // maxPlayerCount.SettingChanged += (sender, args) => {
+            //     int _maxPlayers = maxPlayerCount.Value > 0 ? maxPlayerCount.Value : GameManager.maxPlayersDefault;
+            //     if(GameManager.instance) GameManager.instance.SetMaxPlayers(_maxPlayers);
+            // };
             #endregion
 
             #region Tester Overlay
