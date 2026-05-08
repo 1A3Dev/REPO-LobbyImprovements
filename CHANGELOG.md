@@ -1,3 +1,9 @@
+# 1.2.1
+
+### FIXES
+
+- Fixed "New Game" button not showing the lobby privacy choice menu
+
 # 1.2.0
 
 ### NEW
