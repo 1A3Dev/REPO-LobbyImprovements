@@ -114,11 +114,17 @@ namespace LobbyImprovements.Patches
             
             if (!PluginLoader.mainMenuOverhaul) return;
             
-            TextMeshProUGUI privateGameText = __instance.rectTransform.transform.Find("Menu Button - Private Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
-            if (privateGameText) privateGameText.text = "Host Game";
+            TextMeshProUGUI privateGameText = __instance.rectTransform.transform.Find("Buttons/Menu Button - Private Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
+            if (privateGameText) {
+                Object.Destroy(privateGameText.GetComponent<LocalizationChangedEvent>());
+                privateGameText.text = "Host Game";
+            }
 
-            TextMeshProUGUI publicGameText = __instance.rectTransform.transform.Find("Menu Button - Public Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
-            if (publicGameText) publicGameText.text = "Join Game";
+            TextMeshProUGUI publicGameText = __instance.rectTransform.transform.Find("Buttons/Menu Button - Public Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
+            if (publicGameText) {
+                Object.Destroy(publicGameText.GetComponent<LocalizationChangedEvent>());
+                publicGameText.text = "Join Game";
+            }
         }
         
         // Main Menu > Saves Menu (Skip region menu)
@@ -175,6 +181,7 @@ namespace LobbyImprovements.Patches
                     TextMeshProUGUI menuPageHeader = __result.transform.Find("Header/Text (TMP)")?.GetComponent<TextMeshProUGUI>();
                     if (menuPageHeader)
                     {
+                        Object.Destroy(menuPageHeader.GetComponent<LocalizationChangedEvent>());
                         menuPageHeader.text = "Join Game";
                     }
 
@@ -262,7 +269,10 @@ namespace LobbyImprovements.Patches
             
             Transform createNewObj = __instance.transform.Find("Panel/Create New");
             MenuButton createNewBtn = createNewObj?.Find("Menu Button - CREATE NEW")?.GetComponent<MenuButton>();
-            if (createNewBtn) createNewBtn.buttonText.text = "Refresh";
+            if (createNewBtn) {
+                Object.Destroy(createNewBtn.buttonText.GetComponent<LocalizationChangedEvent>());
+                createNewBtn.buttonText.text = "Refresh";
+            }
         }
 
         [HarmonyPatch(typeof(MenuPageServerList), "OnDestroy")]

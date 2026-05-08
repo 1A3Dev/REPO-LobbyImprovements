@@ -62,7 +62,7 @@ namespace LobbyImprovements.Patches
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool MenuButton_OnSelect(MenuButton __instance)
         {
-            if (__instance.menuButtonPopUp?.headerText == "Start a new game?" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
+            if (__instance.menuButtonPopUp?.headerText == "New Game" && __instance.menuButtonPopUp?.bodyText == "Do you want to start a game?")
             {
                 if (PluginLoader.mainMenuOverhaul && SemiFunc.MainMenuIsMultiplayer())
                 {
