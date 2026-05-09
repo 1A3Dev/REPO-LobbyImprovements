@@ -11,7 +11,7 @@ namespace LobbyImprovements.Patches
         
         public static void ToggleLobbyTypeSaving(GameManager.LobbyTypes lobbyType, bool state)
         {
-            if(StatsManager.instance) return;
+            if(!StatsManager.instance) return;
             
             if(state && !StatsManager.instance.savedLobbyTypes.Contains(lobbyType)){
                 StatsManager.instance.savedLobbyTypes.Add(lobbyType);

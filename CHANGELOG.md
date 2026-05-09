@@ -1,3 +1,9 @@
+# 1.2.2
+
+### FIXES
+
+- Fixed public lobbies not saving
+
 # 1.2.1
 
 ### FIXES
