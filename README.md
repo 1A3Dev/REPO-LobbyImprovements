@@ -7,7 +7,7 @@
 
 ### Information
 
-This mod includes a lot of quality of life improvements that I've suggested to be added to base-game. There's a bunch of things to configure so I'd suggest checking the config to make sure everything is configured how you'd like.
+This mod includes various quality of life improvements & fixes. There's a bunch of things to configure so I'd suggest checking the config to make sure everything is configured how you'd like.
 
 ### Features
 
@@ -31,6 +31,10 @@ This mod includes a lot of quality of life improvements that I've suggested to b
 - Server List
   - Putting a steam lobby id in the server list search will attempt to join the lobby
   - Ability to paste into the search input (pasting a lobby link works as well)
+
+### Fixes
+
+- Fixed not being able to exit to the main menu while stuck on the level loading animation, commonly triggered when joining lobbies that use LateJoin mods.
 
 **If the feature isn't prefixed with [Everyone] or [Host] then it's client side!**
 

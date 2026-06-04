@@ -1,3 +1,9 @@
+# 1.2.3
+
+### FIXES
+
+- Fixed not being able to exit to the main menu while stuck on the level loading animation, commonly triggered when joining lobbies that use LateJoin mods.
+
 # 1.2.2
 
 ### FIXES
