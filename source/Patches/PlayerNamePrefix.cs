@@ -32,6 +32,8 @@ namespace LobbyImprovements.Patches
             
             string url = $"{playerPrefixUrl}?{string.Join("&", steamIds.Select(id => $"id={id}"))}";
             UnityWebRequest www = UnityWebRequest.Get(url);
+            www.SetRequestHeader("Cache-Control", "no-cache");
+
             yield return www.SendWebRequest();
             
             AcceptableValueList<string> acceptableValueList = null;
@@ -67,6 +69,8 @@ namespace LobbyImprovements.Patches
             }else{
                 PluginLoader.StaticLogger.LogWarning($"[GetPlayerNamePrefixes | {logType}] Failed to fetch prefixes: " + www.error);
             }
+
+            www.Dispose();
 
             if(includesLocalPlayer){
                 fetchedLocalPlayer = true;
