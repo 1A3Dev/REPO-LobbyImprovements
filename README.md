@@ -50,7 +50,7 @@ You can get support in any the following places:
 
 | Mod Version | Game Version |
 | ----------- | ------------ |
-| v1.1.8      | v0.4.x       |
+| v1.2.3      | v0.4.x       |
 | v1.1.7      | v0.3.x       |
 
 ### Compatibility
