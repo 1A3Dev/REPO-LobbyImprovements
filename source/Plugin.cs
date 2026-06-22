@@ -34,6 +34,10 @@ namespace LobbyImprovements
         internal static ManualLogSource StaticLogger { get; private set; }
         internal static ConfigFile StaticConfig { get; private set; }
         
+        internal static ConfigEntry<bool> cosmeticMoneyRewardPublic;
+        internal static ConfigEntry<bool> cosmeticMoneyRewardPrivate;
+        internal static ConfigEntry<bool> cosmeticMoneyRewardMatchmaking;
+        
         internal static ConfigEntry<bool> debugConsole;
         internal static ConfigEntry<KeyboardShortcut> debugConsoleKeybind;
         
@@ -65,7 +69,13 @@ namespace LobbyImprovements
             
             StaticLogger = Logger;
             StaticConfig = Config;
-            
+
+            #region Cosmetics
+            cosmeticMoneyRewardPrivate = StaticConfig.Bind("Cosmetics", "Money Reward (Private)", true, "Should the money reward from cosmetic tokens be enabled in private lobbies?");
+            cosmeticMoneyRewardMatchmaking = StaticConfig.Bind("Cosmetics", "Money Reward (Matchmaking)", true, "Should the money reward from cosmetic tokens be enabled in random matchmaking lobbies?");
+            cosmeticMoneyRewardPublic = StaticConfig.Bind("Cosmetics", "Money Reward (Public)", true, "Should the money reward from cosmetic tokens be enabled in public lobbies?");
+            #endregion
+
             #region Debug Console
             debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console.");
             debugConsoleKeybind = StaticConfig.Bind("Debug Console", "Keybind", new KeyboardShortcut(KeyCode.BackQuote));
@@ -158,6 +168,12 @@ namespace LobbyImprovements
                 harmony.PatchAll(typeof(ChatCommands));
             }catch(Exception e){
                 StaticLogger.LogError("ChatCommands Patch Failed: " + e);
+            }
+
+            try{
+                harmony.PatchAll(typeof(CosmeticPatches));
+            }catch(Exception e){
+                StaticLogger.LogError("CosmeticPatches Patch Failed: " + e);
             }
             
             try{

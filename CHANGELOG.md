@@ -1,3 +1,9 @@
+# 1.2.4
+
+### NEW
+
+- Added config options to disable the money reward from cosmetic tokens per lobby type
+
 # 1.2.3
 
 ### FIXES
