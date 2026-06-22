@@ -71,9 +71,9 @@ namespace LobbyImprovements
             StaticConfig = Config;
 
             #region Cosmetics
-            cosmeticMoneyRewardPrivate = StaticConfig.Bind("Cosmetics", "Money Reward (Private)", true, "Should the money reward from cosmetic tokens be enabled in private lobbies?");
-            cosmeticMoneyRewardMatchmaking = StaticConfig.Bind("Cosmetics", "Money Reward (Matchmaking)", true, "Should the money reward from cosmetic tokens be enabled in random matchmaking lobbies?");
-            cosmeticMoneyRewardPublic = StaticConfig.Bind("Cosmetics", "Money Reward (Public)", true, "Should the money reward from cosmetic tokens be enabled in public lobbies?");
+            cosmeticMoneyRewardPrivate = StaticConfig.Bind("Cosmetics", "Money Reward (Private)", true, "[Host] Should the money reward from cosmetic tokens be enabled in private lobbies?");
+            cosmeticMoneyRewardMatchmaking = StaticConfig.Bind("Cosmetics", "Money Reward (Matchmaking)", true, "[Host] Should the money reward from cosmetic tokens be enabled in random matchmaking lobbies?");
+            cosmeticMoneyRewardPublic = StaticConfig.Bind("Cosmetics", "Money Reward (Public)", true, "[Host] Should the money reward from cosmetic tokens be enabled in public lobbies?");
             #endregion
 
             #region Debug Console
@@ -112,24 +112,24 @@ namespace LobbyImprovements
             #endregion
             
             #region Saves
-            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "Should saves be automatically deleted when everyone dies?");
+            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "[Host] Should saves be automatically deleted when everyone dies?");
             saveFileMaxAmount = StaticConfig.Bind("Saves", "Max Amount", 10, new ConfigDescription("What is the max amount of save files? 0 = Unlimited", new AcceptableValueRange<int>(0, 100)));
-            savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "Should public lobbies be saved?");
+            savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "[Host] Should public lobbies be saved?");
             savePublicEnabled.SettingChanged += (sender, args) => {
                 PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Public, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
             };
-            saveMatchmakingEnabled = StaticConfig.Bind("Saves", "Random Lobbies", false, "Should random matchmaking lobbies be saved?");
+            saveMatchmakingEnabled = StaticConfig.Bind("Saves", "Random Lobbies", false, "[Host] Should random matchmaking lobbies be saved?");
             saveMatchmakingEnabled.SettingChanged += (sender, args) => {
                 PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Matchmaking, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
             };
             #endregion
 
             #region Singleplayer
-            singleplayerLobbyMenu = StaticConfig.Bind("Singleplayer", "Lobby Menu", false, "Should the lobby menu be enabled in singleplayer?");
+            singleplayerLobbyMenu = StaticConfig.Bind("Singleplayer", "Lobby Menu", false, "[Host] Should the lobby menu be enabled in singleplayer?");
             #endregion
 
             #region Multiplayer
-            // maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 0, new ConfigDescription("Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
+            // maxPlayerCount = StaticConfig.Bind("Multiplayer", "Max Players", 0, new ConfigDescription("[Host] Sets the maximum number of players allowed in a multiplayer lobby. 0 = Default", new AcceptableValueRange<int>(0, 20)));
             // maxPlayerCount.SettingChanged += (sender, args) => {
             //     int _maxPlayers = maxPlayerCount.Value > 0 ? maxPlayerCount.Value : GameManager.maxPlayersDefault;
             //     if(GameManager.instance) GameManager.instance.SetMaxPlayers(_maxPlayers);
