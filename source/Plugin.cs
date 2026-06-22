@@ -112,16 +112,16 @@ namespace LobbyImprovements
             #endregion
             
             #region Saves
-            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "[Host] Should saves be automatically deleted when everyone dies?");
-            saveFileMaxAmount = StaticConfig.Bind("Saves", "Max Amount", 10, new ConfigDescription("What is the max amount of save files? 0 = Unlimited", new AcceptableValueRange<int>(0, 100)));
-            savePublicEnabled = StaticConfig.Bind("Saves", "Public Lobbies", true, "[Host] Should public lobbies be saved?");
-            savePublicEnabled.SettingChanged += (sender, args) => {
-                PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Public, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
-            };
-            saveMatchmakingEnabled = StaticConfig.Bind("Saves", "Random Lobbies", false, "[Host] Should random matchmaking lobbies be saved?");
+            saveMatchmakingEnabled = StaticConfig.Bind("Saves", "Enabled (Matchmaking)", false, "[Host] Should random matchmaking lobbies be saved?");
             saveMatchmakingEnabled.SettingChanged += (sender, args) => {
                 PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Matchmaking, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
             };
+            savePublicEnabled = StaticConfig.Bind("Saves", "Enabled (Public)", true, "[Host] Should public lobbies be saved?");
+            savePublicEnabled.SettingChanged += (sender, args) => {
+                PublicLobbySaves.ToggleLobbyTypeSaving(GameManager.LobbyTypes.Public, savePublicEnabled.Value || mainMenuOverhaulEnabled.Value);
+            };
+            saveDeleteEnabled = StaticConfig.Bind("Saves", "Deletion", true, "[Host] Should saves be automatically deleted when everyone dies?");
+            saveFileMaxAmount = StaticConfig.Bind("Saves", "Max Amount", 10, new ConfigDescription("What is the max amount of save files? 0 = Unlimited", new AcceptableValueRange<int>(0, 100)));
             #endregion
 
             #region Singleplayer
