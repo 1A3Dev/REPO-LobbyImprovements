@@ -8,6 +8,7 @@ namespace LobbyImprovements.Patches
     public class PublicLobbySaves
     {
         internal static bool publicSavesMenuOpen;
+        internal static bool compatNoSaveDelete;
         
         public static void ToggleLobbyTypeSaving(GameManager.LobbyTypes lobbyType, bool state)
         {
@@ -53,6 +54,12 @@ namespace LobbyImprovements.Patches
             }
 
             __instance.maxSaveFiles = PluginLoader.saveFileMaxAmount.Value;
+
+            if(!compatNoSaveDelete && Harmony.HasAnyPatches("com.PxntxrezStudio.nosavedelete")){
+                compatNoSaveDelete = true;
+                PluginLoader.StaticLogger.LogInfo("Compatibility Enabled: NoSaveDelete");
+                PluginLoader.harmony.Unpatch(typeof(MenuPageSaves).GetMethod("OnNewGame"), HarmonyPatchType.Prefix, "com.PxntxrezStudio.nosavedelete");
+            }
         }
         
         // Saves Menu > New Game/Load Save > Server Name (Skip Confirmation Popup)

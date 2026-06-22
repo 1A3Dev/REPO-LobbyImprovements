@@ -1,3 +1,9 @@
+# 1.2.5
+
+### FIXES
+
+- Fixed being unable to name public lobbies when using NoSaveDelete
+
 # 1.2.4
 
 ### NEW

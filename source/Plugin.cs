@@ -27,7 +27,7 @@ namespace LobbyImprovements
         internal static Dictionary<string, string> nameSuffixMap = new() {
         };
         
-        private readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
+        internal static readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
 
         private static bool initialized;
 
