@@ -12,7 +12,7 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
 ### Features
 
 - Cosmetics
-  - Config options to disable the money reward from cosmetic tokens per lobby type
+  - [Host] Config options to disable the money reward from cosmetic tokens per lobby type
 - Debug Commands
   - Config option to enable the base-game debug console which is accessible via the grave key (`). The keybind can now also be modified in the config as well.
     - You can scroll up and down with the up/down arrow keys or scroll wheel. Also when an option is selected you can press tab to complete it
