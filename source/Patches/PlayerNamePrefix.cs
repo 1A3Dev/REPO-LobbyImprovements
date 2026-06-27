@@ -86,7 +86,7 @@ namespace LobbyImprovements.Patches
         
         public static void WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar _player){
             if(_player?.worldSpaceUIPlayerName){
-                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(_player);
+                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(_player, "nametag");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     _player.worldSpaceUIPlayerName.text.richText = true;
                     _player.worldSpaceUIPlayerName.text.text = prefix;
@@ -166,7 +166,7 @@ namespace LobbyImprovements.Patches
                 if(!playerAvatar) continue;
                 
                 TextMeshProUGUI playerName = menuPlayerListed.playerName;
-                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(playerAvatar);
+                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_lobby");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     playerName.richText = true;
                     playerName.text = prefix;
@@ -184,7 +184,7 @@ namespace LobbyImprovements.Patches
             foreach(KeyValuePair<PlayerAvatar, MenuSliderPlayerMicGain> gameObject in __instance.playerMicGainSliders){
                 PlayerAvatar playerAvatar = gameObject.Key;
                 TextMeshProUGUI playerName = gameObject.Value.menuSlider.elementNameText;
-                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(playerAvatar);
+                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_esc");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     playerName.richText = true;
                     playerName.text = prefix;
@@ -237,7 +237,7 @@ namespace LobbyImprovements.Patches
             return [];
         }
 
-        public static string GetPrefixStringForPlayer(PlayerAvatar playerAvatar){
+        public static string GetPrefixStringForPlayer(PlayerAvatar playerAvatar, string overrideKey){
             if(!playerAvatar) return null;
             
             string prefix = "";
@@ -251,19 +251,22 @@ namespace LobbyImprovements.Patches
             }
             
             List<string> prefixes = GetPrefixDataForSteamId(playerAvatar.steamID);
-            
+
+            string devPrefix = "<color=#7289da>[!]</color>";
             // Check if the selected prefix has a prefix string
             if(string.IsNullOrWhiteSpace(selectedPrefix) || !PluginLoader.namePrefixMap.TryGetValue(selectedPrefix, out prefix)){
                 // If mod dev and no prefix is set, then default to the first allowed
                 if(PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString()) && prefixes.Count > 0 && PluginLoader.namePrefixMap.TryGetValue(prefixes.First(), out prefix)){
-                    prefix += "<color=#7289da>[!]</color> "; // Indicate that a default prefix is being used
+                    prefix += devPrefix; // Indicate that a default prefix is being used
                 }
             }
             // Check if the selected prefix has a suffix string
             if(string.IsNullOrWhiteSpace(selectedPrefix) || !PluginLoader.nameSuffixMap.TryGetValue(selectedPrefix, out suffix)){
                 // If mod dev and no suffix is set, then default to the first allowed
                 if(PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString()) && prefixes.Count > 0 && PluginLoader.nameSuffixMap.TryGetValue(prefixes.First(), out suffix)){
-                    suffix += " <color=#7289da>[!]</color>"; // Indicate that a default prefix is being used
+                    if(string.IsNullOrEmpty(prefix) || !prefix.EndsWith(devPrefix)){
+                        suffix += devPrefix; // Indicate that a default prefix is being used
+                    }
                 }
             }
 
