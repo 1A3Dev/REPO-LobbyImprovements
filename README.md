@@ -5,11 +5,11 @@
 [![Discord](https://img.shields.io/discord/646323142737788928?style=for-the-badge&logo=discord&logoColor=white&label=Discord)](https://discord.gg/CKqVFPRtKp)
 [![Ko-fi](https://img.shields.io/badge/Donate-F16061.svg?style=for-the-badge&logo=ko-fi&logoColor=white&label=Ko-fi)](https://ko-fi.com/K3K8SOM8U)
 
-### Information
+## Information
 
 This mod includes various quality of life improvements & fixes. There's a bunch of things to configure so I'd suggest checking the config to make sure everything is configured how you'd like.
 
-### Features
+## Features
 
 - Cosmetics
   - [Host] Config options to disable the money reward from cosmetic tokens per lobby type
@@ -21,11 +21,10 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
 - Fast Startup
   - Config option to skip moon phase animation
   - Config option to skip splash screen (This only activates after you've seen the full splash screen at least once)
-- [Everyone] Player Name Prefixes
-  - This adds name prefixes for the game's developers and testers
-    - If you are one of the R.E.P.O testers and don't see the option for the tester prefix please let me know
-    - Developer - https://i.gyazo.com/e81a1b64264d50b624e940b46bd9e5cb.png
-    - Tester - https://i.gyazo.com/555a9a4e36615d045aea7dce7ca32ca9.png
+- [Everyone] Player Roles
+  - This adds perks for [specific roles](#PlayerRoles) such as the game's testers, moderators & developers. The current perks are:
+    - Name colours, prefixes & suffixes
+  - You can automatically sync them using your roles in the R.E.P.O. and R.E.P.O. Modding discord servers via [my website](https://1a3.uk/games/repo/mods/lobbyimprovements) with both Discord and Steam. However if you don't trust my website for whatever reason then you can DM me on Discord instead and I'll manually assign any roles you're eligible for.
 - Saves
   - [Host] Config option to disable save file deletion
   - [Host] Config option to enable save files for public lobbies
@@ -34,28 +33,46 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
   - Putting a steam lobby id in the server list search will attempt to join the lobby
   - Ability to paste into the search input (pasting a lobby link works as well)
 
-### Fixes
+**If the feature isn't prefixed with [Everyone] or [Host] then it's client side!**
+
+## Fixes
 
 - Fixed not being able to exit to the main menu while stuck on the level loading animation, commonly triggered when joining lobbies that use LateJoin mods.
 
-**If the feature isn't prefixed with [Everyone] or [Host] then it's client side!**
+## <a id="PlayerRoles"></a> Player Roles (AKA Name Prefixes)
 
-### Support
+![](https://i.gyazo.com/df1bc74516e6b8a68b111aeab64f1f7d.png)
+
+Developer - Reserved for people developing the game, whether they're part of Semiwork or working as freelancers.
+
+![](https://i.gyazo.com/22459085fc9562a719569e5fc41d353e.png)
+
+Moderator - People trusted by Semiwork to moderate the discord server. They have no ability to issue in-game punishments or anything similar.
+
+![](https://i.gyazo.com/0ab240a318de0d09ce4806dc20e818c4.png)
+
+Tester - People trusted by Semiwork to test updates before they are released to the public.
+
+![](https://i.gyazo.com/0ab240a318de0d09ce4806dc20e818c4.png)
+
+Content - People trusted by Semiwork to test updates before they are released to the public.
+
+## Support
 
 You can get support in any the following places:
 
-- The [thread](https://discord.com/channels/1344557689979670578/1391111846823465082) in the [REPO Modding Discord Server](https://discord.gg/repomodding)
+- The [thread](https://discord.com/channels/1344557689979670578/1391111846823465082) in the [R.E.P.O. Modding Discord Server](https://discord.gg/repomodding)
 - [GitHub Issues](https://github.com/1A3Dev/REPO-LobbyImprovements/issues)
 - [My Discord Server](https://discord.gg/CKqVFPRtKp)
 
-### Latest Versions
+## Latest Versions
 
 | Mod Version | Game Version |
 | ----------- | ------------ |
 | v1.2.x      | v0.4.x       |
 | v1.1.7      | v0.3.x       |
 
-### Compatibility
+## Compatibility
 
 - Works Well With:
   - N/A
