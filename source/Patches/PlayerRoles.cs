@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,78 +15,96 @@ using UnityEngine.Networking;
 
 namespace LobbyImprovements.Patches
 {
+    public class RoleDisplay {
+        public string prefix { get; set; } = "";
+        public string suffix { get; set; } = "";
+    }
+
+    public class PlayerRolesResponse {
+        public Dictionary<string, List<string>> userRoles { get; set; } = new();
+        public Dictionary<string, Dictionary<string, RoleDisplay>> validRoles { get; set; } = new();
+    }
+
     [HarmonyPatch]
-    public class PlayerNamePrefix_SteamManager {
-        private static string playerPrefixUrl = "https://api.1a3.uk/srv1/repo/prefixes.json"; // URL to fetch the allowed prefixes from
+    public class PlayerRoles_SteamManager {
+        internal static string playerRolesProperty = "playerNamePrefix";
+        // private static string playerRolesUrl = "https://1a3.uk/api/games/repo/mods/lobbyimprovements/player-roles.json"; // URL to fetch the allowed prefixes from
+        private static string playerRolesUrl = "http://1a3.localhost/api/games/repo/mods/lobbyimprovements/player-roles.json"; // URL to fetch the allowed prefixes from
 
         private static bool fetchedLocalPlayer;
-        public static List<string> localPrefixData = new(); // Prefixes for Local Player
-        public static Dictionary<string, List<string>> playerPrefixData = new(); // Prefixes for Other Players
-        
-        private static IEnumerator GetPlayerNamePrefixes(string[] steamIds, string logType){
+        public static List<string> localRoles = new(); // Prefixes for Local Player
+        public static Dictionary<string, List<string>> playerRoles = new(); // Prefixes for Other Players
+
+        private static IEnumerator GetPlayerRoles(string[] steamIds, string logType){
             steamIds = steamIds.Where(x => Regex.IsMatch(x, "^76[0-9]{15}$")).OrderBy(x => x).ToArray();
             if(steamIds.Length == 0) yield break;
-            
+
             string localSteamId = SteamClient.SteamId.ToString();
             bool includesLocalPlayer = steamIds.Contains(localSteamId);
-            
-            string url = $"{playerPrefixUrl}?{string.Join("&", steamIds.Select(id => $"id={id}"))}";
+
+            string url = $"{playerRolesUrl}?{string.Join("&", steamIds.Select(id => $"id={id}"))}";
             UnityWebRequest www = UnityWebRequest.Get(url);
             www.SetRequestHeader("Cache-Control", "no-cache");
 
             yield return www.SendWebRequest();
-            
+
             AcceptableValueList<string> acceptableValueList = null;
             if(www.result == UnityWebRequest.Result.Success){
                 try {
-                    Dictionary<string, List<string>> newPlayerPrefixData = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(www.downloadHandler.text);
+                    PlayerRolesResponse apiData = JsonConvert.DeserializeObject<PlayerRolesResponse>(www.downloadHandler.text);
+
+                    // Merge returned validRoles into the map (roles not returned keep their defaults)
+                    foreach(var kvp in apiData.validRoles){
+                        PluginLoader.validRoles[kvp.Key] = kvp.Value;
+                    }
+
                     foreach(string steamId in steamIds){
                         if(steamId == localSteamId){
-                            if(newPlayerPrefixData.TryGetValue(steamId, out List<string> prefixes)){
-                                localPrefixData = prefixes;
-                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {steamId} has {prefixes.Count} prefixes: {string.Join(", ", prefixes)}");
+                            if(apiData.userRoles.TryGetValue(steamId, out List<string> _roles)){
+                                localRoles = _roles;
+                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerRoles | {logType}] {steamId} has {_roles.Count} roles: {string.Join(", ", _roles)}");
                             }else{
-                                localPrefixData.Clear();
-                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {steamId} has 0 prefixes");
+                                localRoles.Clear();
+                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerRoles | {logType}] {steamId} has 0 roles");
                             }
                         }else{
-                            if(newPlayerPrefixData.TryGetValue(steamId, out List<string> prefixes)){
-                                playerPrefixData[steamId] = prefixes;
-                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {steamId} has {prefixes.Count} prefixes: {string.Join(", ", prefixes)}");
+                            if(apiData.userRoles.TryGetValue(steamId, out List<string> _roles)){
+                                playerRoles[steamId] = _roles;
+                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerRoles | {logType}] {steamId} has {_roles.Count} roles: {string.Join(", ", _roles)}");
                             }else{
-                                playerPrefixData.Remove(steamId);
-                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerNamePrefixes | {logType}] {steamId} has 0 prefixes");
+                                playerRoles.Remove(steamId);
+                                PluginLoader.StaticLogger.LogDebug($"[GetPlayerRoles | {logType}] {steamId} has 0 roles");
                             }
                         }
                     }
-                    
+
                     if(includesLocalPlayer){
-                        acceptableValueList = new AcceptableValueList<string>(localPrefixData.Prepend("none").ToArray());
+                        acceptableValueList = new AcceptableValueList<string>(localRoles.Prepend("none").ToArray());
                     }
                 }catch(JsonException e){
-                    PluginLoader.StaticLogger.LogWarning($"[GetPlayerNamePrefixes | {logType}] Failed to parse prefixes: " + e.Message);
+                    PluginLoader.StaticLogger.LogWarning($"[GetPlayerRoles | {logType}] Failed to parse roles: " + e.Message);
                 }
             }else{
-                PluginLoader.StaticLogger.LogWarning($"[GetPlayerNamePrefixes | {logType}] Failed to fetch prefixes: " + www.error);
+                PluginLoader.StaticLogger.LogWarning($"[GetPlayerRoles | {logType}] Failed to fetch roles: " + www.error);
             }
 
             www.Dispose();
 
             if(includesLocalPlayer){
                 fetchedLocalPlayer = true;
-                PluginLoader.playerNamePrefixSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?", acceptableValueList));
-                PluginLoader.playerNamePrefixSelected.SettingChanged += (sender, args) => {
+                PluginLoader.playerRoleSelected = PluginLoader.StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which role would you like to use?", acceptableValueList));
+                PluginLoader.playerRoleSelected.SettingChanged += (sender, args) => {
                     WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
                     if(GameManager.Multiplayer()){
-                        PlayerNamePrefix_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", PluginLoader.playerNamePrefixSelected?.Value);
+                        PlayerRoles_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, playerRolesProperty, PluginLoader.playerRoleSelected?.Value);
                     }
                 };
             }
         }
-        
+
         public static void WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar _player){
             if(_player?.worldSpaceUIPlayerName){
-                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(_player, "nametag");
+                string prefix = PlayerRoles_SemiFunc.GetPrefixStringForPlayer(_player, "avatar_nametag");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     _player.worldSpaceUIPlayerName.text.richText = true;
                     _player.worldSpaceUIPlayerName.text.text = prefix;
@@ -96,53 +114,53 @@ namespace LobbyImprovements.Patches
                 }
             }
         }
-        
+
         // Fetch local player's name prefixes
         [HarmonyPatch(typeof(SteamManager), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_Awake(SteamManager __instance) {
             if(SteamClient.IsValid && !fetchedLocalPlayer){
-                __instance.StartCoroutine(GetPlayerNamePrefixes([SteamClient.SteamId.ToString()], "SteamManager_Awake"));
+                __instance.StartCoroutine(GetPlayerRoles([SteamClient.SteamId.ToString()], "SteamManager_Awake"));
             }
         }
-        
+
         // Fetch other players name prefixes
         [HarmonyPatch(typeof(SteamManager), "OnLobbyEntered")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby){
             string[] steamIds = _lobby.Members.Select(x => x.Id.ToString()).Where(x => x != SteamClient.SteamId.ToString()).ToArray();
-            if(steamIds.Length > 0) __instance.StartCoroutine(GetPlayerNamePrefixes(steamIds, "SteamManager_OnLobbyEntered"));
+            if(steamIds.Length > 0) __instance.StartCoroutine(GetPlayerRoles(steamIds, "SteamManager_OnLobbyEntered"));
         }
-        
+
         // Fetch joining player's name prefixes
         [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberJoined")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend){
-            __instance.StartCoroutine(GetPlayerNamePrefixes([_friend.Id.ToString()], "SteamManager_OnLobbyMemberJoined"));
+            __instance.StartCoroutine(GetPlayerRoles([_friend.Id.ToString()], "SteamManager_OnLobbyMemberJoined"));
         }
-        
+
         // Remove leaving player's name prefixes
         [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberLeft")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_OnLobbyMemberLeft(Lobby _lobby, Friend _friend){
-            if(playerPrefixData.ContainsKey(_friend.Id.ToString())){
-                PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_OnLobbyMemberLeft] Removing 1 player ({_friend.Id})");
-                playerPrefixData.Remove(_friend.Id.ToString());
+            if(playerRoles.ContainsKey(_friend.Id.ToString())){
+                PluginLoader.StaticLogger.LogDebug($"[playerRoles | SteamManager_OnLobbyMemberLeft] Removing 1 player ({_friend.Id})");
+                playerRoles.Remove(_friend.Id.ToString());
             }
         }
-        
+
         // Remove all name prefixes
         [HarmonyPatch(typeof(SteamManager), "LeaveLobby")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_LeaveLobby(){
-            if(playerPrefixData.Count > 0){
-                PluginLoader.StaticLogger.LogDebug($"[playerPrefixData | SteamManager_LeaveLobby] Removing {playerPrefixData.Count} players");
-                playerPrefixData.Clear();
+            if(playerRoles.Count > 0){
+                PluginLoader.StaticLogger.LogDebug($"[playerRoles | SteamManager_LeaveLobby] Removing {playerRoles.Count} players");
+                playerRoles.Clear();
             }
         }
 
@@ -151,10 +169,10 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void PlayerAvatar_Awake(PlayerAvatar __instance){
             if(SemiFunc.IsMultiplayer() && __instance.isLocal){
-                PlayerNamePrefix_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", PluginLoader.playerNamePrefixSelected?.Value);
+                PlayerRoles_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, playerRolesProperty, PluginLoader.playerRoleSelected?.Value);
             }
         }
-        
+
         // Lobby Menu Player List
         [HarmonyPatch(typeof(MenuPageLobby), "Update")]
         [HarmonyPostfix]
@@ -164,9 +182,9 @@ namespace LobbyImprovements.Patches
                 MenuPlayerListed menuPlayerListed = listObject.GetComponent<MenuPlayerListed>();
                 PlayerAvatar playerAvatar = menuPlayerListed.playerAvatar;
                 if(!playerAvatar) continue;
-                
+
                 TextMeshProUGUI playerName = menuPlayerListed.playerName;
-                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_lobby");
+                string prefix = PlayerRoles_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_lobby");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     playerName.richText = true;
                     playerName.text = prefix;
@@ -180,11 +198,11 @@ namespace LobbyImprovements.Patches
         // Pause Menu Player List
         private static IEnumerator DelayedUpdatePauseMenuSliders(MenuPageEsc __instance){
             yield return null;
-            
+
             foreach(KeyValuePair<PlayerAvatar, MenuSliderPlayerMicGain> gameObject in __instance.playerMicGainSliders){
                 PlayerAvatar playerAvatar = gameObject.Key;
                 TextMeshProUGUI playerName = gameObject.Value.menuSlider.elementNameText;
-                string prefix = PlayerNamePrefix_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_esc");
+                string prefix = PlayerRoles_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_esc");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     playerName.richText = true;
                     playerName.text = prefix;
@@ -194,14 +212,14 @@ namespace LobbyImprovements.Patches
                 }
             }
         }
-        
+
         [HarmonyPatch(typeof(MenuPageEsc), "PlayerGainSlidersUpdate")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void MenuPageEsc_PlayerGainSlidersUpdate(MenuPageEsc __instance){
             __instance.StartCoroutine(DelayedUpdatePauseMenuSliders(__instance));
         }
-        
+
         // In-Game Player Name
         [HarmonyPatch(typeof(WorldSpaceUIParent), "PlayerName")]
         [HarmonyPostfix]
@@ -209,12 +227,12 @@ namespace LobbyImprovements.Patches
         private static void WorldSpaceUIParent_PlayerName(PlayerAvatar _player){
             WorldSpaceUIParent_UpdatePlayerName(_player);
         }
-        
+
         [HarmonyPatch(typeof(MonoBehaviourPunCallbacks), "OnPlayerPropertiesUpdate")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps){
-            if(changedProps.ContainsKey("playerNamePrefix")){
+            if(changedProps.ContainsKey(playerRolesProperty)){
                 foreach(PlayerAvatar playerAvatar in GameDirector.instance.PlayerList){
                     if(playerAvatar.photonView.Owner != targetPlayer) continue;
                     WorldSpaceUIParent_UpdatePlayerName(playerAvatar);
@@ -224,53 +242,70 @@ namespace LobbyImprovements.Patches
         }
     }
 
-    public class PlayerNamePrefix_SemiFunc {
+    public class PlayerRoles_SemiFunc {
         public static List<string> GetPrefixDataForSteamId(string steamId){
             if(steamId == SteamClient.SteamId.ToString()){
-                return PlayerNamePrefix_SteamManager.localPrefixData;
+                return PlayerRoles_SteamManager.localRoles;
             }
-            
-            if(PlayerNamePrefix_SteamManager.playerPrefixData.TryGetValue(steamId, out List<string> prefixes)){
+
+            if(PlayerRoles_SteamManager.playerRoles.TryGetValue(steamId, out List<string> prefixes)){
                 return prefixes;
             }
-            
+
             return [];
         }
 
-        public static string GetPrefixStringForPlayer(PlayerAvatar playerAvatar, string overrideKey){
+        public static string GetPrefixStringForPlayer(PlayerAvatar playerAvatar, string contextKey){
             if(!playerAvatar) return null;
-            
-            string prefix = "";
-            string suffix = "";
-            
+
             string selectedPrefix = null;
             if(playerAvatar.isLocal){
-                selectedPrefix = PluginLoader.playerNamePrefixSelected?.Value;
-            }else if (playerAvatar.photonView.Owner.CustomProperties.ContainsKey("playerNamePrefix")){
-                selectedPrefix = (string)playerAvatar.photonView.Owner.CustomProperties["playerNamePrefix"];
+                selectedPrefix = PluginLoader.playerRoleSelected?.Value;
+            }else if (playerAvatar.photonView.Owner.CustomProperties.ContainsKey(PlayerRoles_SteamManager.playerRolesProperty)){
+                selectedPrefix = (string)playerAvatar.photonView.Owner.CustomProperties[PlayerRoles_SteamManager.playerRolesProperty];
             }
-            
-            List<string> prefixes = GetPrefixDataForSteamId(playerAvatar.steamID);
 
-            string devPrefix = "<color=#7289da>[!]</color>";
-            // Check if the selected prefix has a prefix string
-            if(string.IsNullOrWhiteSpace(selectedPrefix) || !PluginLoader.namePrefixMap.TryGetValue(selectedPrefix, out prefix)){
-                // If mod dev and no prefix is set, then default to the first allowed
-                if(PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString()) && prefixes.Count > 0 && PluginLoader.namePrefixMap.TryGetValue(prefixes.First(), out prefix)){
-                    prefix += devPrefix; // Indicate that a default prefix is being used
+            List<string> playerPrefixes = GetPrefixDataForSteamId(playerAvatar.steamID);
+            bool isDevViewing = PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString());
+
+            RoleDisplay entry = null;
+            bool usingDefault = false;
+
+            if(!string.IsNullOrWhiteSpace(selectedPrefix) && PluginLoader.validRoles.TryGetValue(selectedPrefix, out var selectedContextMap)){
+                entry = GetContextEntry(selectedContextMap, contextKey);
+            }
+
+            // Dev fallback: if no valid selected prefix, use first allowed prefix with a dev marker
+            if(entry == null && isDevViewing && playerPrefixes.Count > 0){
+                string firstValid = playerPrefixes.FirstOrDefault(p => PluginLoader.validRoles.ContainsKey(p));
+                if(firstValid != null && PluginLoader.validRoles.TryGetValue(firstValid, out var defaultContextMap)){
+                    entry = GetContextEntry(defaultContextMap, contextKey);
+                    usingDefault = true;
                 }
             }
-            // Check if the selected prefix has a suffix string
-            if(string.IsNullOrWhiteSpace(selectedPrefix) || !PluginLoader.nameSuffixMap.TryGetValue(selectedPrefix, out suffix)){
-                // If mod dev and no suffix is set, then default to the first allowed
-                if(PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString()) && prefixes.Count > 0 && PluginLoader.nameSuffixMap.TryGetValue(prefixes.First(), out suffix)){
-                    if(string.IsNullOrEmpty(prefix) || !prefix.EndsWith(devPrefix)){
-                        suffix += devPrefix; // Indicate that a default prefix is being used
-                    }
-                }
+
+            if(entry == null) return null;
+
+            string prefix = entry.prefix ?? "";
+            string suffix = entry.suffix ?? "";
+
+            if(usingDefault){
+                string devMarker = "<color=#7289da>[!]</color>";
+                if(!string.IsNullOrWhiteSpace(prefix)) prefix += devMarker;
+                else suffix += devMarker;
             }
 
             return string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(suffix) ? null : $"{prefix}{Regex.Replace(playerAvatar.playerName ?? "", "<.*?>", string.Empty)}{suffix}";
+        }
+
+        private static RoleDisplay GetContextEntry(Dictionary<string, RoleDisplay> contextMap, string contextKey){
+            if(contextMap.TryGetValue(contextKey, out var entry) && (!string.IsNullOrEmpty(entry.prefix) || !string.IsNullOrEmpty(entry.suffix))){
+                return entry;
+            }
+            if(contextMap.TryGetValue("default", out var defaultEntry) && (!string.IsNullOrEmpty(defaultEntry.prefix) || !string.IsNullOrEmpty(defaultEntry.suffix))){
+                return defaultEntry;
+            }
+            return null;
         }
 
         public static void PhotonSetCustomProperty(Player photonPlayer, object key, object value){

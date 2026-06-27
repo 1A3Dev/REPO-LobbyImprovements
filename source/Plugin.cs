@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
@@ -19,13 +19,7 @@ namespace LobbyImprovements
             "76561199523762804" // 1A3Test
         ];
         
-        internal static Dictionary<string, string> namePrefixMap = new() {
-            { "developer", "<color=#ff0062>[DEV]</color> " },
-            { "tester", "<color=#ff8b00>[TESTER]</color> " }
-        };
-        
-        internal static Dictionary<string, string> nameSuffixMap = new() {
-        };
+        internal static Dictionary<string, Dictionary<string, RoleDisplay>> validRoles = new();
         
         internal static readonly Harmony harmony = new Harmony(MyPluginInfo.PLUGIN_GUID);
 
@@ -50,8 +44,7 @@ namespace LobbyImprovements
         
         internal static ConfigEntry<bool> mainMenuOverhaulEnabled;
         
-        // internal static ConfigEntry<bool> playerNamePrefixEnabled;
-        internal static ConfigEntry<string> playerNamePrefixSelected;
+        internal static ConfigEntry<string> playerRoleSelected;
         
         internal static ConfigEntry<bool> saveDeleteEnabled;
         internal static ConfigEntry<int> saveFileMaxAmount;
@@ -145,18 +138,18 @@ namespace LobbyImprovements
             };
             #endregion
             
-            #region Name Prefix
+            #region Player Roles
             try{
-                harmony.PatchAll(typeof(PlayerNamePrefix_SteamManager));
+                harmony.PatchAll(typeof(PlayerRoles_SteamManager));
             }catch(Exception e){
-                StaticLogger.LogError("PlayerNamePrefix Patch Failed: " + e);
+                StaticLogger.LogError("PlayerRoles Patch Failed: " + e);
 
-                if(playerNamePrefixSelected == null){
-                    playerNamePrefixSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which prefix would you like to use?"));
-                    playerNamePrefixSelected.SettingChanged += (sender, args) => {
-                        PlayerNamePrefix_SteamManager.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
+                if(playerRoleSelected == null){
+                    playerRoleSelected = StaticConfig.Bind("Name Prefix", "Selected", "none", new ConfigDescription("Which role would you like to use?"));
+                    playerRoleSelected.SettingChanged += (sender, args) => {
+                        PlayerRoles_SteamManager.WorldSpaceUIParent_UpdatePlayerName(PlayerAvatar.instance);
                         if(GameManager.Multiplayer()){
-                            PlayerNamePrefix_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, "playerNamePrefix", playerNamePrefixSelected.Value);
+                            PlayerRoles_SemiFunc.PhotonSetCustomProperty(PhotonNetwork.LocalPlayer, PlayerRoles_SteamManager.playerRolesProperty, playerRoleSelected.Value);
                         }
                     };
                 }
