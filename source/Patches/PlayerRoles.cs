@@ -27,9 +27,8 @@ namespace LobbyImprovements.Patches
 
     [HarmonyPatch]
     public class PlayerRoles_SteamManager {
-        internal static string playerRolesProperty = "playerNamePrefix";
-        // private static string playerRolesUrl = "https://1a3.uk/api/games/repo/mods/lobbyimprovements/player-roles.json"; // URL to fetch the allowed prefixes from
-        private static string playerRolesUrl = "http://1a3.localhost/api/games/repo/mods/lobbyimprovements/player-roles.json"; // URL to fetch the allowed prefixes from
+        internal static string playerRolesProperty = "playerNamePrefix"; // Photon property name used for syncing the player's selected role
+        private static string playerRolesUrl = "https://1a3.uk/api/games/repo/mods/lobbyimprovements/player-roles.json"; // API to fetch the player roles from
 
         private static bool fetchedLocalPlayer;
         public static List<string> localRoles = new(); // Prefixes for Local Player
