@@ -39,7 +39,7 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
 
 - Fixed not being able to exit to the main menu while stuck on the level loading animation, commonly triggered when joining lobbies that use LateJoin mods.
 
-## <a id="PlayerRoles"></a> Player Roles (AKA Name Prefixes)
+## <a id="PlayerRoles"></a> Player Roles
 
 ![](https://i.gyazo.com/df1bc74516e6b8a68b111aeab64f1f7d.png)
 
@@ -52,10 +52,6 @@ Moderator - People trusted by Semiwork to moderate the discord server. They have
 ![](https://i.gyazo.com/0ab240a318de0d09ce4806dc20e818c4.png)
 
 Tester - People trusted by Semiwork to test updates before they are released to the public.
-
-![](https://i.gyazo.com/0ab240a318de0d09ce4806dc20e818c4.png)
-
-Content - People trusted by Semiwork to test updates before they are released to the public.
 
 ## Support
 
