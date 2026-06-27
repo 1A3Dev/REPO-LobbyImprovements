@@ -43,7 +43,7 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
 
 ![](https://i.gyazo.com/df1bc74516e6b8a68b111aeab64f1f7d.png)
 
-Developer - Reserved for people developing the game, whether they're part of Semiwork or working as freelancers.
+Developer - People employed by Semiwork or who are doing ongoing freelance work for them.
 
 ![](https://i.gyazo.com/22459085fc9562a719569e5fc41d353e.png)
 
@@ -51,7 +51,7 @@ Moderator - People trusted by Semiwork to moderate the discord server. They have
 
 ![](https://i.gyazo.com/0ab240a318de0d09ce4806dc20e818c4.png)
 
-Tester - People trusted by Semiwork to test updates before they are released to the public.
+Tester - People trusted by Semiwork to test new game versions, long before public release.
 
 ## Support
 
