@@ -28,7 +28,11 @@ namespace LobbyImprovements.Patches
     [HarmonyPatch]
     public class PlayerRoles_SteamManager {
         internal static string playerRolesProperty = "playerNamePrefix"; // Photon property name used for syncing the player's selected role
+        #if DEBUG
+        private static string playerRolesUrl = "http://1a3.localhost/api/games/repo/mods/lobbyimprovements/player-roles.json"; // API to fetch the player roles from
+        #else
         private static string playerRolesUrl = "https://1a3.uk/api/games/repo/mods/lobbyimprovements/player-roles.json"; // API to fetch the player roles from
+        #endif
 
         private static bool fetchedLocalPlayer;
         public static List<string> localRoles = new(); // Prefixes for Local Player
@@ -44,6 +48,7 @@ namespace LobbyImprovements.Patches
             string url = $"{playerRolesUrl}?{string.Join("&", steamIds.Select(id => $"id={id}"))}";
             UnityWebRequest www = UnityWebRequest.Get(url);
             www.SetRequestHeader("Cache-Control", "no-cache");
+            www.SetRequestHeader("x-steam-id", localSteamId);
 
             yield return www.SendWebRequest();
 
@@ -52,9 +57,27 @@ namespace LobbyImprovements.Patches
                 try {
                     PlayerRolesResponse apiData = JsonConvert.DeserializeObject<PlayerRolesResponse>(www.downloadHandler.text);
 
-                    // Merge returned validRoles into the map (roles not returned keep their defaults)
+                    bool rolesDisplayChanged = false;
+
                     foreach(var kvp in apiData.validRoles){
+                        if(!rolesDisplayChanged){
+                            if(!PluginLoader.validRoles.TryGetValue(kvp.Key, out var existing)){
+                                rolesDisplayChanged = true;
+                            }else{
+                                foreach(var ctx in kvp.Value){
+                                    if(existing.TryGetValue(ctx.Key, out var existingDisplay) && existingDisplay.prefix == ctx.Value.prefix && existingDisplay.suffix == ctx.Value.suffix) continue;
+                                    rolesDisplayChanged = true;
+                                    break;
+                                }
+                            }
+                        }
                         PluginLoader.validRoles[kvp.Key] = kvp.Value;
+                    }
+
+                    if(rolesDisplayChanged && GameDirector.instance){
+                        foreach(PlayerAvatar player in GameDirector.instance.PlayerList){
+                            WorldSpaceUIParent_UpdatePlayerName(player);
+                        }
                     }
 
                     foreach(string steamId in steamIds){
