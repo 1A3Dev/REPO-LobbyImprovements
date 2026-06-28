@@ -18,6 +18,9 @@ namespace LobbyImprovements.Patches
     public class RoleDisplay {
         public string prefix { get; set; } = "";
         public string suffix { get; set; } = "";
+
+        public string devPrefix { get; set; } = "";
+        public string devSuffix { get; set; } = "";
     }
 
     public class PlayerRolesResponse {
@@ -45,7 +48,7 @@ namespace LobbyImprovements.Patches
             string localSteamId = SteamClient.SteamId.ToString();
             bool includesLocalPlayer = steamIds.Contains(localSteamId);
 
-            string url = $"{playerRolesUrl}?context={logType}&{string.Join("&", steamIds.Select(id => $"id={id}"))}";
+            string url = $"{playerRolesUrl}?context={logType}&self={localSteamId}&{string.Join("&", steamIds.Select(id => $"id={id}"))}";
             UnityWebRequest www = UnityWebRequest.Get(url);
             www.SetRequestHeader("Cache-Control", "no-cache");
 
@@ -64,7 +67,7 @@ namespace LobbyImprovements.Patches
                                 rolesDisplayChanged = true;
                             }else{
                                 foreach(var ctx in kvp.Value){
-                                    if(existing.TryGetValue(ctx.Key, out var existingDisplay) && existingDisplay.prefix == ctx.Value.prefix && existingDisplay.suffix == ctx.Value.suffix) continue;
+                                    if(existing.TryGetValue(ctx.Key, out var existingDisplay) && existingDisplay.prefix == ctx.Value.prefix && existingDisplay.suffix == ctx.Value.suffix && existingDisplay.devPrefix == ctx.Value.devPrefix && existingDisplay.devSuffix == ctx.Value.devSuffix) continue;
                                     rolesDisplayChanged = true;
                                     break;
                                 }
@@ -290,31 +293,28 @@ namespace LobbyImprovements.Patches
             bool isDevViewing = PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString());
 
             RoleDisplay entry = null;
-            bool usingDefault = false;
+            bool usingDevDisplay = false;
 
             if(!string.IsNullOrWhiteSpace(selectedPrefix) && PluginLoader.validRoles.TryGetValue(selectedPrefix, out var selectedContextMap)){
                 entry = GetContextEntry(selectedContextMap, contextKey);
             }
 
-            // Dev fallback: if no valid selected prefix, use first allowed prefix with a dev marker
+            // Dev fallback: use first role whose context entry has devPrefix/devSuffix defined
             if(entry == null && isDevViewing && playerPrefixes.Count > 0){
-                string firstValid = playerPrefixes.FirstOrDefault(p => PluginLoader.validRoles.ContainsKey(p));
-                if(firstValid != null && PluginLoader.validRoles.TryGetValue(firstValid, out var defaultContextMap)){
-                    entry = GetContextEntry(defaultContextMap, contextKey);
-                    usingDefault = true;
+                foreach(string role in playerPrefixes){
+                    RoleDisplay candidate = GetContextEntry(PluginLoader.validRoles[role], contextKey);
+                    if(candidate != null && (!string.IsNullOrEmpty(candidate.devPrefix) || !string.IsNullOrEmpty(candidate.devSuffix))){
+                        entry = candidate;
+                        usingDevDisplay = true;
+                        break;
+                    }
                 }
             }
 
             if(entry == null) return null;
 
-            string prefix = entry.prefix ?? "";
-            string suffix = entry.suffix ?? "";
-
-            if(usingDefault){
-                string devMarker = "<color=#7289da>[!]</color>";
-                if(!string.IsNullOrWhiteSpace(prefix)) prefix += $"{devMarker} ";
-                else suffix += $" {devMarker}";
-            }
+            string prefix = (usingDevDisplay ? entry.devPrefix : entry.prefix) ?? "";
+            string suffix = (usingDevDisplay ? entry.devSuffix : entry.suffix) ?? "";
 
             return string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(suffix) ? null : $"{prefix}{Regex.Replace(playerAvatar.playerName ?? "", "<.*?>", string.Empty)}{suffix}";
         }
