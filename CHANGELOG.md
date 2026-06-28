@@ -1,3 +1,12 @@
+# 1.2.6
+
+### CHANGES
+
+- Player Name Prefix System Overhaul
+  - Added [a page](https://1a3.uk/games/repo/mods/lobbyimprovements) on my website that lets you automatically sync your in-game roles with the roles you have in the R.E.P.O. and R.E.P.O. Modding Discord servers. If you'd rather not authenticate on my site, just DM me on Discord and I'll assign whichever roles you're eligible for.
+  - Made role configuration be dynamically fetched when checking access to roles (to allow me to update roles without having to update the mod each time)
+  - Renamed system to "Player Roles" to reduce confusion (the previous name conflicted with due to the term "prefix")
+
 # 1.2.5
 
 ### FIXES

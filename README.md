@@ -24,7 +24,7 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
 - [Everyone] Player Roles
   - This adds perks for [specific roles](#PlayerRoles) such as the game's testers, moderators & developers. The current perks are:
     - Name colours, prefixes & suffixes
-  - You can automatically sync them using your roles in the R.E.P.O. and R.E.P.O. Modding discord servers via [my website](https://1a3.uk/games/repo/mods/lobbyimprovements) with both Discord and Steam. However if you don't trust my website for whatever reason then you can DM me on Discord instead and I'll manually assign any roles you're eligible for.
+  - You can automatically sync your roles from the R.E.P.O. and R.E.P.O. Modding Discord servers through [my website](https://1a3.uk/games/repo/mods/lobbyimprovements). If you'd rather not authenticate on my site, just DM me on Discord and I'll assign whichever roles you're eligible for.
 - Saves
   - [Host] Config option to disable save file deletion
   - [Host] Config option to enable save files for public lobbies
