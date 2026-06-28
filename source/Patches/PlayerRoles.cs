@@ -45,10 +45,9 @@ namespace LobbyImprovements.Patches
             string localSteamId = SteamClient.SteamId.ToString();
             bool includesLocalPlayer = steamIds.Contains(localSteamId);
 
-            string url = $"{playerRolesUrl}?{string.Join("&", steamIds.Select(id => $"id={id}"))}";
+            string url = $"{playerRolesUrl}?context={logType}&{string.Join("&", steamIds.Select(id => $"id={id}"))}";
             UnityWebRequest www = UnityWebRequest.Get(url);
             www.SetRequestHeader("Cache-Control", "no-cache");
-            www.SetRequestHeader("x-steam-id", localSteamId);
 
             yield return www.SendWebRequest();
 
@@ -143,7 +142,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void SteamManager_Awake(SteamManager __instance) {
             if(SteamClient.IsValid && !fetchedLocalPlayer){
-                __instance.StartCoroutine(GetPlayerRoles([SteamClient.SteamId.ToString()], "SteamManager_Awake"));
+                __instance.StartCoroutine(GetPlayerRoles([SteamClient.SteamId.ToString()], "self_init"));
             }
         }
 
@@ -153,7 +152,7 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby){
             string[] steamIds = _lobby.Members.Select(x => x.Id.ToString()).Where(x => x != SteamClient.SteamId.ToString()).ToArray();
-            if(steamIds.Length > 0) __instance.StartCoroutine(GetPlayerRoles(steamIds, "SteamManager_OnLobbyEntered"));
+            if(steamIds.Length > 0) __instance.StartCoroutine(GetPlayerRoles(steamIds, "self_joined"));
         }
 
         // Fetch joining player's name prefixes
@@ -161,7 +160,7 @@ namespace LobbyImprovements.Patches
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend){
-            __instance.StartCoroutine(GetPlayerRoles([_friend.Id.ToString()], "SteamManager_OnLobbyMemberJoined"));
+            __instance.StartCoroutine(GetPlayerRoles([_friend.Id.ToString()], "member_joined"));
         }
 
         // Remove leaving player's name prefixes
@@ -313,8 +312,8 @@ namespace LobbyImprovements.Patches
 
             if(usingDefault){
                 string devMarker = "<color=#7289da>[!]</color>";
-                if(!string.IsNullOrWhiteSpace(prefix)) prefix += devMarker;
-                else suffix += devMarker;
+                if(!string.IsNullOrWhiteSpace(prefix)) prefix += $"{devMarker} ";
+                else suffix += $" {devMarker}";
             }
 
             return string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(suffix) ? null : $"{prefix}{Regex.Replace(playerAvatar.playerName ?? "", "<.*?>", string.Empty)}{suffix}";
