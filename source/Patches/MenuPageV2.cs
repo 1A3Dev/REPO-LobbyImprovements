@@ -114,13 +114,13 @@ namespace LobbyImprovements.Patches
             
             if (!PluginLoader.mainMenuOverhaul) return;
             
-            TextMeshProUGUI privateGameText = __instance.rectTransform.transform.Find("Buttons/Menu Button - Private Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI privateGameText = __instance.rectTransformLeft.Find("Buttons/Menu Button - Private Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
             if (privateGameText) {
                 Object.Destroy(privateGameText.GetComponent<LocalizationChangedEvent>());
                 privateGameText.text = "Host Game";
             }
 
-            TextMeshProUGUI publicGameText = __instance.rectTransform.transform.Find("Buttons/Menu Button - Public Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
+            TextMeshProUGUI publicGameText = __instance.rectTransformLeft.transform.Find("Buttons/Menu Button - Public Game/ButtonText")?.GetComponent<TextMeshProUGUI>();
             if (publicGameText) {
                 Object.Destroy(publicGameText.GetComponent<LocalizationChangedEvent>());
                 publicGameText.text = "Join Game";
