@@ -7,6 +7,8 @@ using HarmonyLib;
 using Newtonsoft.Json;
 using Photon.Pun;
 using Photon.Realtime;
+using Platforms;
+using Platforms.Steam;
 using Steamworks;
 using Steamworks.Data;
 using TMPro;
@@ -140,34 +142,34 @@ namespace LobbyImprovements.Patches
         }
 
         // Fetch local player's name prefixes
-        [HarmonyPatch(typeof(SteamManager), "Awake")]
+        [HarmonyPatch(typeof(PlatformManager), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void SteamManager_Awake(SteamManager __instance) {
+        private static void SteamManager_Awake(PlatformManager __instance) {
             if(SteamClient.IsValid && !fetchedLocalPlayer){
                 __instance.StartCoroutine(GetPlayerRoles([SteamClient.SteamId.ToString()], "self_init"));
             }
         }
 
         // Fetch other players name prefixes
-        [HarmonyPatch(typeof(SteamManager), "OnLobbyEntered")]
+        [HarmonyPatch(typeof(SteamLobbyManager), "OnLobbyEntered")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void SteamManager_OnLobbyEntered(SteamManager __instance, Lobby _lobby){
+        private static void SteamManager_OnLobbyEntered(SteamLobbyManager __instance, Lobby _lobby){
             string[] steamIds = _lobby.Members.Select(x => x.Id.ToString()).Where(x => x != SteamClient.SteamId.ToString()).ToArray();
             if(steamIds.Length > 0) __instance.StartCoroutine(GetPlayerRoles(steamIds, "self_joined"));
         }
 
         // Fetch joining player's name prefixes
-        [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberJoined")]
+        [HarmonyPatch(typeof(SteamLobbyManager), "OnLobbyMemberJoined")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void SteamManager_OnLobbyMemberJoined(SteamManager __instance, Lobby _lobby, Friend _friend){
+        private static void SteamManager_OnLobbyMemberJoined(SteamLobbyManager __instance, Lobby _lobby, Friend _friend){
             __instance.StartCoroutine(GetPlayerRoles([_friend.Id.ToString()], "member_joined"));
         }
 
         // Remove leaving player's name prefixes
-        [HarmonyPatch(typeof(SteamManager), "OnLobbyMemberLeft")]
+        [HarmonyPatch(typeof(SteamLobbyManager), "OnLobbyMemberLeft")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_OnLobbyMemberLeft(Lobby _lobby, Friend _friend){
@@ -178,7 +180,7 @@ namespace LobbyImprovements.Patches
         }
 
         // Remove all name prefixes
-        [HarmonyPatch(typeof(SteamManager), "LeaveLobby")]
+        [HarmonyPatch(typeof(SteamLobbyManager), "LeaveLobby")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
         private static void SteamManager_LeaveLobby(){
@@ -223,9 +225,11 @@ namespace LobbyImprovements.Patches
         private static IEnumerator DelayedUpdatePauseMenuSliders(MenuPageEsc __instance){
             yield return null;
 
-            foreach(KeyValuePair<PlayerAvatar, MenuSliderPlayerMicGain> gameObject in __instance.playerMicGainSliders){
-                PlayerAvatar playerAvatar = gameObject.Key;
-                TextMeshProUGUI playerName = gameObject.Value.menuSlider.elementNameText;
+            foreach(MenuSliderPlayerMicGain gameObject in __instance.playerMicGainSliders.Values){
+                PlayerAvatar playerAvatar = gameObject.playerAvatar;
+                if(!playerAvatar) continue;
+
+                TextMeshProUGUI playerName = gameObject.menuSlider.elementNameText;
                 string prefix = PlayerRoles_SemiFunc.GetPrefixStringForPlayer(playerAvatar, "menu_page_esc");
                 if(!string.IsNullOrWhiteSpace(prefix)){
                     playerName.richText = true;

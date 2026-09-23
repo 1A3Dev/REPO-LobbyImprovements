@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Platforms;
 using Steamworks;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ public class TesterOverlayPatches
 	[HarmonyWrapSafe]
 	private static bool DebugTesterUI_Start(DebugTesterUI __instance)
 	{
-		return Debug.isDebugBuild || SteamManager.instance.developerFlags.debug_console || SteamManager.instance.developerFlags.debug_overlay;
+		return Debug.isDebugBuild || PlatformManager.instance.developerFlags.debug_console || PlatformManager.instance.developerFlags.debug_overlay;
 	}
 	
 	// [HarmonyPatch(typeof(GameManager), "Awake")]
@@ -27,21 +28,5 @@ public class TesterOverlayPatches
 	// 	}
 	// 	int _maxPlayers = PluginLoader.maxPlayerCount.Value > 0 ? PluginLoader.maxPlayerCount.Value : GameManager.maxPlayersDefault;
 	// 	__instance.SetMaxPlayers(_maxPlayers);
-	// }
-
-	// [HarmonyPatch(typeof(SteamManager), "Awake")]
-	// [HarmonyPostfix]
-	// [HarmonyWrapSafe]
-	// private static void SteamManager_Awake(SteamManager __instance)
-	// {
-	// 	if(SteamManager.instance != __instance || __instance.developerUser != SemiFunc.User.Jenson) return;
-	// 	if(!SteamClient.IsValid || !PluginLoader.modDevSteamIDs.Contains(SteamClient.SteamId.ToString())) return;
-	//
-	// 	__instance.developerFlags.debug_console = true;
-	// 	__instance.developerFlags.debug_logs = true;
-	// 	__instance.developerFlags.debug_overlay = true;
-	// 	__instance.developerUser = SemiFunc.User.Jenson;
-	// 	__instance.developerFlags.debug_user = __instance.developerUser.ToString();
-	// 	Debug.Log($"DEVELOPER MODE: {__instance.developerUser.ToString().ToUpper()} (MOD)");
 	// }
 }

@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 using Steamworks;
+using UnityEngine;
 
 namespace LobbyImprovements.Patches
 {
@@ -104,6 +106,30 @@ namespace LobbyImprovements.Patches
             return true;
         }
         
+        // Saves Menu > New Game/Load Save > Lobby Name Input
+        private static void OpenLobbyNameInput(string saveFileName, List<string> saveFileBackups)
+        {
+            MenuManager.instance.PagePopUpTextInput("Create Server", null, new Color(1f, 0.55f, 0f), "Enter a server name", null, $"{SteamClient.Name}'s Lobby", "Confirm", null, false, 60, false, _text => {
+                DataDirector.instance.networkServerName = _text;
+
+                MenuManager.instance.MenuEffectClick(MenuManager.MenuClickEffectType.Confirm, null, 1f, 1f);
+
+                RunManager.instance.ResetProgress();
+                GameManager.instance.SetConnectRandom(true);
+                GameManager.instance.SetLobbyType(GameManager.LobbyTypes.Public);
+
+                if (saveFileName != null)
+                    SemiFunc.SaveFileLoad(saveFileName, saveFileBackups);
+                else
+                    SemiFunc.SaveFileCreate();
+
+                GameManager.instance.localTest = false;
+                RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.LobbyMenu);
+                RunManager.instance.lobbyJoin = true;
+            }, null);
+            ServerListSearch.textInputType = PopUpTextInputType.ServerListCreateNew;
+        }
+        
         // Saves Menu > New Game > Lobby Name Input
         [HarmonyPatch(typeof(MenuPageSaves), "OnNewGame")]
         [HarmonyPrefix]
@@ -111,13 +137,10 @@ namespace LobbyImprovements.Patches
         [HarmonyPriority(Priority.First)]
         private static bool MenuPageSaves_OnNewGame(MenuPageSaves __instance)
         {
-            if (!publicSavesMenuOpen || __instance.saveFiles.Count >= __instance.maxSaveFiles)
+            if (!publicSavesMenuOpen || (__instance.maxSaveFiles > 0 && __instance.saveFiles.Count >= __instance.maxSaveFiles))
                 return true;
 
-            MenuPage prevPage = MenuManager.instance.currentMenuPage;
-            MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
-            menuPageServerListCreateNew.menuPageParent = prevPage;
-            menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
+            OpenLobbyNameInput(null, null);
             return false;
         }
         
@@ -129,24 +152,7 @@ namespace LobbyImprovements.Patches
         {
             if(!publicSavesMenuOpen) return true;
 
-            MenuPage prevPage = MenuManager.instance.currentMenuPage;
-            MenuPageServerListCreateNew menuPageServerListCreateNew = MenuManager.instance.PageOpenOnTop(MenuPageIndex.ServerListCreateNew).GetComponent<MenuPageServerListCreateNew>();
-            menuPageServerListCreateNew.menuPageParent = prevPage;
-            menuPageServerListCreateNew.menuTextInput.textCurrent = $"{SteamClient.Name}'s Lobby";
-            menuPageServerListCreateNew.saveFileName = __instance.currentSaveFileName;
-            return false;
-        }
-        
-        // Lobby Name Input > Saves Menu
-        [HarmonyPatch(typeof(MenuPageServerListCreateNew), "ExitPage")]
-        [HarmonyPrefix]
-        [HarmonyWrapSafe]
-        private static bool MenuPageServerListCreateNew_ExitPage(MenuPageServerListCreateNew __instance)
-        {
-            if (!publicSavesMenuOpen && !PluginLoader.mainMenuOverhaul) return true;
-            
-            MenuManager.instance.PageCloseAll();
-            MenuManager.instance.PageOpen(MenuPageIndex.Saves);
+            OpenLobbyNameInput(__instance.currentSaveFileName, __instance.currentSaveFileBackups);
             return false;
         }
         
@@ -156,7 +162,14 @@ namespace LobbyImprovements.Patches
         [HarmonyWrapSafe]
         private static bool MenuPageSaves_OnGoBack(MenuPageSaves __instance)
         {
-            if(!publicSavesMenuOpen) return true;
+            if(!publicSavesMenuOpen){
+                if(!SemiFunc.MainMenuIsMultiplayer()) return true;
+
+                MenuManager.instance.PageCloseAll();
+                MenuManager.instance.PageOpen(MenuPageIndex.Main);
+                return false;
+
+            }
 
             publicSavesMenuOpen = false;
             

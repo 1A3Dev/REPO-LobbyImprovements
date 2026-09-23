@@ -79,7 +79,7 @@ namespace LobbyImprovements.Patches
             MenuPageLobby.instance = __instance;
             __instance.menuPage = __instance.GetComponent<MenuPage>();
             __instance.roomNameText.text = $"{PhotonNetwork.CloudRegion} {PhotonNetwork.CurrentRoom?.Name}";
-            __instance.chatPromptText.text = InputManager.instance.InputDisplayReplaceTags("Press [chat] to use commands");
+            __instance.chatPromptText.text = SemiFunc.InputDisplayReplaceTags("Press [chat] to use commands");
             
             return false;
         }
@@ -103,7 +103,7 @@ namespace LobbyImprovements.Patches
         {
             if (SemiFunc.IsMultiplayer() || __instance.joiningPlayer) return true;
 
-            SteamManager.instance.LockLobby();
+            SteamLobbyManager.instance.LockLobby();
             DataDirector.instance.RunsPlayedAdd();
             if (RunManager.instance.loadLevel == 0)
             {
