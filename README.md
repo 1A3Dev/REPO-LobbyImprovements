@@ -26,6 +26,7 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
     - Name colours, prefixes & suffixes
   - You can automatically sync your roles from the R.E.P.O. and R.E.P.O. Modding Discord servers through [my website](https://1a3.uk/games/repo/mods/lobbyimprovements). If you'd rather not authenticate on my site, just DM me on Discord and I'll assign whichever roles you're eligible for.
 - Saves
+  - [Host] Config option to change the save file limit
   - [Host] Config option to disable save file deletion
   - [Host] Config option to enable save files for public lobbies
   - [Host] Config option to enable save files for random matchmaking lobbies
