@@ -93,16 +93,22 @@ namespace LobbyImprovements.Patches
             __result = true;
         }
         
-        [HarmonyPatch(typeof(DebugConsoleUI), "Awake")]
+        [HarmonyPatch(typeof(MenuPageSettingsControls), "Awake")]
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void DebugConsoleUI_Awake(DebugConsoleUI __instance)
+        private static void MenuPageSettingsControls_Awake(MenuPageSettingsControls __instance)
         {
-            // Override keybind if set to something else
-            KeyCode toggleKey = PluginLoader.debugConsoleKeybind.Value.MainKey;
-            if(toggleKey != KeyCode.None && toggleKey != KeyCode.BackQuote){
-                __instance.toggleKey = toggleKey;
-            }
+            if (!PluginLoader.debugConsole.Value || Debug.isDebugBuild) return;
+            __instance.debugKeybindsObj.SetActive(true);
+        }
+        
+        [HarmonyPatch(typeof(MenuPageSettingsGamepad), "Awake")]
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void MenuPageSettingsGamepad_Awake(MenuPageSettingsGamepad __instance)
+        {
+            if (!PluginLoader.debugConsole.Value || Debug.isDebugBuild) return;
+            __instance.debugKeybindsObj.SetActive(true);
         }
         
         // Fix walkie talkie box being replaced

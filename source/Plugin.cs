@@ -33,7 +33,6 @@ namespace LobbyImprovements
         internal static ConfigEntry<bool> cosmeticMoneyRewardMatchmaking;
         
         internal static ConfigEntry<bool> debugConsole;
-        internal static ConfigEntry<KeyboardShortcut> debugConsoleKeybind;
         
         internal static ConfigEntry<bool> moonPhaseUIEnabled;
         internal static ConfigEntry<bool> splashScreenUIEnabled;
@@ -71,12 +70,6 @@ namespace LobbyImprovements
 
             #region Debug Console
             debugConsole = StaticConfig.Bind("Debug Console", "Enabled", false, "Enables the vanilla debug console.");
-            debugConsoleKeybind = StaticConfig.Bind("Debug Console", "Keybind", new KeyboardShortcut(KeyCode.BackQuote));
-            debugConsoleKeybind.SettingChanged += (sender, args) => {
-                if(DebugConsoleUI.instance){
-                    DebugConsoleUI.instance.toggleKey = debugConsoleKeybind.Value.MainKey != KeyCode.None ? debugConsoleKeybind.Value.MainKey : KeyCode.BackQuote;
-                }
-            };
             #endregion
 
             #region Fast Startup
