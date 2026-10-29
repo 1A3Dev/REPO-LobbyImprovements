@@ -1,3 +1,8 @@
+# 1.2.7
+
+### CHANGES
+- v0.5.0 Compatibility
+
 # 1.2.6
 
 ### CHANGES
