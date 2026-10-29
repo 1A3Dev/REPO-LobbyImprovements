@@ -14,7 +14,7 @@ This mod includes various quality of life improvements & fixes. There's a bunch 
 - Cosmetics
   - [Host] Config options to disable the money reward from cosmetic tokens per lobby type
 - Debug Commands
-  - Config option to enable the base-game debug console which is accessible via the grave key (`). The keybind can now also be modified in the config as well.
+  - Config option to enable the base-game debug console which is accessible via the grave key (`).
     - You can scroll up and down with the up/down arrow keys or scroll wheel. Also when an option is selected you can press tab to complete it
     - You can use middle mouse click to redo the previous command you executed
     - Items & valuables spawn at the closest level point whilst enemies spawn in a room nearby
